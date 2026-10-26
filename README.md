@@ -72,7 +72,20 @@ positions, 2.087 GB, 431 tokens/s, 38.7 min. The full shard validates
 (non-finite 0, negatives 0, unit row sums, exact counts); 5 positions
 underflow in fp16. The earlier 100k training numbers are preliminary.
 
-Next: the 2,000-step three-way comparison on the corrected 1M targets,
-then the full-corpus decision.
+Corrected 1M comparison (2,000 steps, 300,653 validation bytes):
+
+| objective | val BPB | EOT-incl BPB | teacher KL | top-1 |
+|---|---:|---:|---:|---:|
+| EOT | 0.860 | 0.921 | 0.348 | 0.862 |
+| MI | 0.771 | 6.418 | 0.404 | 0.637 |
+| CE | 0.872 | 0.937 | 0.488 | 0.865 |
+
+EOT beats CE on BPB and KL and is the only method with usable token
+boundaries. MI still wins content-only BPB because it has no EOT mass.
+The corrected 1M overfit test reaches BPB 0.342 / KL 0.0156. See
+`reports/phase5-6.md`.
+
+Next: full 6.59M-token extraction (~4.25 h, ~13.8 GB) or the
+token-student control.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.
