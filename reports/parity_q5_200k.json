@@ -1,0 +1,10 @@
+{
+  "chars": 200000,
+  "hf_tokens": 52023,
+  "llama_tokens": 52023,
+  "same_length": true,
+  "mismatches": 0,
+  "roundtrip_exact": true,
+  "nfc_idempotent": true,
+  "first_mismatch": null
+}

@@ -1,0 +1,17 @@
+{
+  "n_tokens": 248077,
+  "n_special": 21,
+  "n_byte_tokens": 248056,
+  "n_unique_bytes": 248056,
+  "duplicate_byte_groups": {},
+  "min_token_len": 1,
+  "max_token_len": 128,
+  "mean_token_len": 7.430547940787564,
+  "roundtrip": {
+    "input_chars": 10006444,
+    "n_tokens": 2790514,
+    "decoded_chars": 10006444,
+    "exact": true,
+    "nfc_idempotent": true
+  }
+}

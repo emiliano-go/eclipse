@@ -1,0 +1,36 @@
+teacher:
+  base_repo: ornith-ai/Ornith-1.5-9B
+  base_revision: 489cb97981b8654bcfcf30ce1f94ed1b62e07b53
+  gguf_repo: ornith-ai/Ornith-1.5-9B-GGUF
+  gguf_revision: abdd624b12ebf020b767fff532ff44fe552b28c3
+  model_file: Ornith-1.5-9B-Q5_K_M.gguf
+  audit_model_file: Ornith-1.5-9B-Q8_0.gguf
+  ctx: 4096
+  n_batch: 64
+  n_gpu_layers: 99
+  measured_tokens_per_second: 890   # Q5_K_M, ctx 4096, batch 128; batch 64 is the safe default
+  measured_peak_vram_mib: 7687
+
+note: "Ornith is instruction-tuned and enters thinking mode on raw text; decide chat framing before Phase 1."
+
+corpus:
+  target_content_bytes: 20000000
+  val_fraction: 0.02
+  near_dup_jaccard: 0.9
+  sources:
+    - wikimedia/wikipedia:20231101.en
+    - bigcode/the-stack-smol
+    - tldr-pages/tldr
+
+extraction:
+  stages: [100000, 1000000, 5000000]   # teacher tokens
+  audit_tokens: 100000
+  max_kl_nats: 0.05
+  min_top1_agreement: 0.98
+  min_tokens_per_second: 100
+  re_plan_tokens_per_second: 30
+
+targets:
+  vocab: 260   # 256 bytes + EOT + BOS + EOS + PAD
+  dtype: float16
+  shard_positions: 250000
