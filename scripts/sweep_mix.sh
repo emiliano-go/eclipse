@@ -22,13 +22,17 @@ run() {
     --out "$OUT/$name" --steps "$STEPS" --batch 8 --seq-len 1024 \
     --eval-every 100 --save-every 500 --seed 1337 "$@" \
     > "$OUT/$name.log" 2>&1
+  PYTHONPATH=src "$PY" scripts/eval_model.py --checkpoint "$OUT/$name/final.pt" \
+    --val-targets "$VAL" --out "$OUT/$name/doc_eval.json" \
+    > "$OUT/$name.eval.log" 2>&1
   tail -3 "$OUT/$name.log"
+  tail -2 "$OUT/$name.eval.log"
 }
 
 run eot_ce_10 --objective mix --alpha-kl 0.9 --alpha-ce 0.1
 run eot_ce_25 --objective mix --alpha-kl 0.75 --alpha-ce 0.25
 run eot_ce_50 --objective mix --alpha-kl 0.5 --alpha-ce 0.5
-run mi_ce_25 --objective mix --alpha-mi 0.75 --alpha-ce 0.25
+run mi_ce_25 --objective mix --alpha-kl 0 --alpha-mi 0.75 --alpha-ce 0.25
 run eot_mi_ce --objective mix --alpha-kl 0.5 --alpha-mi 0.25 --alpha-ce 0.25
 run eot_ce_25_T2 --objective mix --alpha-kl 0.75 --alpha-ce 0.25 --temperature 2.0
 run eot_stage1 --objective eot --steps 1500
