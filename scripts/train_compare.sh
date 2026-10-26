@@ -14,6 +14,10 @@ PY="$ROOT/venv/bin/python"
 mkdir -p "$OUT_ROOT"
 cd "$HERE"
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+VAL_ARGS=()
+if [ -n "${VAL_TARGETS:-}" ]; then
+  VAL_ARGS=(--val-targets "$VAL_TARGETS")
+fi
 
 for OBJ in eot mi ce; do
   echo "=== $OBJ"
@@ -26,6 +30,7 @@ for OBJ in eot mi ce; do
     --batch "$BATCH" \
     --seq-len 1024 \
     --val-fraction 0.1 \
+    "${VAL_ARGS[@]}" \
     --eval-every 100 \
     --save-every 500 \
     > "$OUT_ROOT/$OBJ.log" 2>&1

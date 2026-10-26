@@ -45,3 +45,13 @@ def test_save_load_roundtrip(tmp_path):
     tokens = torch.randint(0, 256, (1, 8))
     with torch.no_grad():
         torch.testing.assert_close(model(tokens), clone(tokens))
+
+
+def test_generate_greedy_stats():
+    torch.manual_seed(0)
+    model = small().eval()
+    out, stats = model.generate([257], max_new=4, greedy=True, return_stats=True, device="cpu")
+    assert isinstance(out, bytes)
+    assert stats["symbols"] <= 4
+    assert stats["eot"] >= 0
+    assert stats["bytes"] == len(out)

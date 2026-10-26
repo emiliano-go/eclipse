@@ -177,26 +177,28 @@ class TargetDataset:
             for start in range(0, m["n"] - seq_len + 1, seq_len):
                 self.windows.append((si, start))
         self.n_positions = sum(m["n"] for m in self.shards)
-        self._mm: dict[int, tuple[np.ndarray, np.ndarray, np.ndarray]] = {}
+        self._mm: dict[int, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
 
-    def _maps(self, si: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _maps(self, si: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if si not in self._mm:
             m = self.shards[si]
             d = m["path"]
             targets = np.memmap(d / "targets.f16", dtype=np.float16, mode="r", shape=(m["n"], m["vocab"]))
             symbols = np.memmap(d / "symbols.u16", dtype=np.uint16, mode="r", shape=(m["n"],))
             nexts = np.memmap(d / "next_symbols.u16", dtype=np.uint16, mode="r", shape=(m["n"],))
-            self._mm[si] = (symbols, targets, nexts)
+            docs = np.memmap(d / "doc_ids.i32", dtype=np.int32, mode="r", shape=(m["n"],))
+            self._mm[si] = (symbols, targets, nexts, docs)
         return self._mm[si]
 
     def __len__(self) -> int:
         return len(self.windows)
 
-    def __getitem__(self, idx: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def __getitem__(self, idx: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         si, start = self.windows[idx]
-        symbols, targets, nexts = self._maps(si)
+        symbols, targets, nexts, docs = self._maps(si)
         return (
             np.asarray(symbols[start : start + self.seq_len], dtype=np.int64),
             np.asarray(targets[start : start + self.seq_len], dtype=np.float32),
             np.asarray(nexts[start : start + self.seq_len], dtype=np.int64),
+            np.asarray(docs[start : start + self.seq_len], dtype=np.int64),
         )

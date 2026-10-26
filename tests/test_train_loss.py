@@ -31,3 +31,22 @@ def test_mi_shifts_at_token_boundary():
     logits = p.log()
     loss = objective_loss(logits, t, nexts, "mi").item()
     assert abs(loss - (-math.log(0.8))) < 1e-4
+
+
+def test_mix_eot_ce_is_weighted_sum():
+    p = torch.tensor([[[0.5, 0.3, 0.2]]], dtype=torch.float32)
+    logits = p.log()
+    nexts = torch.tensor([[1]])
+    eot = objective_loss(logits, p, nexts, "eot").item()
+    ce = objective_loss(logits, p, nexts, "ce").item()
+    mix = objective_loss(logits, p, nexts, "mix", alpha_kl=0.9, alpha_ce=0.1).item()
+    assert abs(mix - (0.9 * eot + 0.1 * ce)) < 1e-6
+
+
+def test_temperature_is_finite():
+    p = torch.tensor([[[0.5, 0.3, 0.2]]], dtype=torch.float32)
+    logits = p.log()
+    nexts = torch.tensor([[1]])
+    for obj in ("eot", "mi", "mix"):
+        loss = objective_loss(logits, p, nexts, obj, temperature=2.0, alpha_ce=0.1)
+        assert torch.isfinite(loss).item()

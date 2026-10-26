@@ -1,4 +1,4 @@
-"""Train the 48M byte student with EOT, Marginalize-It or byte-CE."""
+"""Train the 48M byte student with EOT, Marginalize-It, CE, or a mixed loss."""
 
 from __future__ import annotations
 
@@ -23,6 +23,10 @@ class TrainConfig:
     targets: str
     out: str
     objective: str = "eot"
+    alpha_kl: float = 1.0
+    alpha_mi: float = 0.0
+    alpha_ce: float = 0.0
+    temperature: float = 1.0
     steps: int = 0
     epochs: int = 12
     batch: int = 16
@@ -33,12 +37,14 @@ class TrainConfig:
     min_lr_fraction: float = 0.1
     grad_clip: float = 1.0
     val_fraction: float = 0.1
+    val_targets: str = ""
     max_windows: int = 0
     overfit: bool = False
     amp: bool = True
     seed: int = 1337
     eval_every: int = 100
     save_every: int = 500
+    init_model: str = ""
     device: str = "cuda"
 
 
@@ -51,35 +57,81 @@ class WindowData(Dataset):
         return len(self.indices)
 
     def __getitem__(self, i: int):
-        symbols, targets, nexts = self.base[int(self.indices[i])]
-        return torch.from_numpy(symbols), torch.from_numpy(targets), torch.from_numpy(nexts)
+        symbols, targets, nexts, docs = self.base[int(self.indices[i])]
+        return (
+            torch.from_numpy(symbols),
+            torch.from_numpy(targets),
+            torch.from_numpy(nexts),
+            torch.from_numpy(docs),
+        )
 
 
-def objective_loss(logits: torch.Tensor, targets: torch.Tensor, nexts: torch.Tensor, objective: str):
+def _soften(t: torch.Tensor, temperature: float) -> torch.Tensor:
+    if temperature == 1.0:
+        return t
+    q = t.clamp_min(0.0).pow(1.0 / temperature)
+    return q / q.sum(-1, keepdim=True).clamp_min(1e-30)
+
+
+def _kl(t: torch.Tensor, logp: torch.Tensor, scale: float = 1.0) -> torch.Tensor:
+    return (torch.special.xlogy(t, t) - t * logp).sum(-1) * scale
+
+
+def _mi_kl(t: torch.Tensor, logp: torch.Tensor, nexts: torch.Tensor, scale: float = 1.0):
+    shift = torch.zeros_like(t)
+    shift[:, :-1] = t[:, 1:]
+    use_shift = (nexts == EOT).unsqueeze(-1)
+    t_mi = torch.where(use_shift, shift, t)
+    b = t_mi[..., :256]
+    total = b.sum(-1, keepdim=True)
+    b = b / total.clamp_min(1e-30)
+    kl = _kl(b, logp[..., :256], scale)
+    return kl, total.squeeze(-1) > 0
+
+
+def objective_loss(
+    logits: torch.Tensor,
+    targets: torch.Tensor,
+    nexts: torch.Tensor,
+    objective: str,
+    alpha_kl: float = 1.0,
+    alpha_mi: float = 0.0,
+    alpha_ce: float = 0.0,
+    temperature: float = 1.0,
+) -> torch.Tensor:
     logp = F.log_softmax(logits.float(), dim=-1)
     t = targets.float().clamp_min(0)
-    if objective == "eot":
-        return (torch.special.xlogy(t, t) - t * logp).sum(-1).mean()
+    ce = -logp.gather(-1, nexts.unsqueeze(-1)).squeeze(-1)
     if objective == "ce":
-        return -logp.gather(-1, nexts.unsqueeze(-1)).squeeze(-1).mean()
+        return ce.mean()
+
+    if temperature != 1.0:
+        t_s = _soften(t, temperature)
+        logp_s = F.log_softmax(logits.float() / temperature, dim=-1)
+        scale = temperature * temperature
+    else:
+        t_s, logp_s, scale = t, logp, 1.0
+
+    eot = _kl(t_s, logp_s, scale)
+    if objective == "eot":
+        return eot.mean()
     if objective == "mi":
-        shift = torch.zeros_like(t)
-        shift[:, :-1] = t[:, 1:]
-        use_shift = (nexts == EOT).unsqueeze(-1)
-        t_mi = torch.where(use_shift, shift, t)
-        b = t_mi[..., :256]
-        total = b.sum(-1, keepdim=True)
-        b = b / total.clamp_min(1e-30)
-        kl = (torch.special.xlogy(b, b) - b * logp[..., :256]).sum(-1)
-        mask = total.squeeze(-1) > 0
-        if not bool(mask.any()):
-            return logits.sum() * 0.0
-        return kl[mask].mean()
+        kl, mask = _mi_kl(t_s, logp_s, nexts, scale)
+        return kl[mask].mean() if bool(mask.any()) else logits.sum() * 0.0
+    if objective == "mix":
+        loss = alpha_kl * eot.mean()
+        if alpha_mi > 0:
+            kl, mask = _mi_kl(t_s, logp_s, nexts, scale)
+            if bool(mask.any()):
+                loss = loss + alpha_mi * kl[mask].mean()
+        if alpha_ce > 0:
+            loss = loss + alpha_ce * ce.mean()
+        return loss
     raise ValueError(objective)
 
 
 @torch.no_grad()
-def evaluate(model: ByteLM, loader: DataLoader, objective: str, device: str) -> dict:
+def evaluate(model: ByteLM, loader: DataLoader, cfg: TrainConfig) -> dict:
     model.eval()
     total_loss = 0.0
     n_batches = 0
@@ -88,10 +140,15 @@ def evaluate(model: ByteLM, loader: DataLoader, objective: str, device: str) -> 
     n_bytes = 0
     top1 = 0
     n_tokens = 0
-    for symbols, targets, nexts in loader:
-        symbols, targets, nexts = symbols.to(device), targets.to(device), nexts.to(device)
+    for symbols, targets, nexts, _docs in loader:
+        symbols, targets, nexts = symbols.to(cfg.device), targets.to(cfg.device), nexts.to(cfg.device)
         logits = model(symbols)
-        total_loss += float(objective_loss(logits, targets, nexts, objective))
+        total_loss += float(
+            objective_loss(
+                logits, targets, nexts, cfg.objective, cfg.alpha_kl, cfg.alpha_mi,
+                cfg.alpha_ce, cfg.temperature,
+            )
+        )
         n_batches += 1
         logp = F.log_softmax(logits.float(), dim=-1)
         nll = -logp.gather(-1, nexts.unsqueeze(-1)).squeeze(-1)
@@ -134,8 +191,13 @@ def lr_at(step: int, total: int, cfg: TrainConfig) -> float:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--targets", required=True)
+    ap.add_argument("--val-targets", default="")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--objective", default="eot", choices=["eot", "mi", "ce"])
+    ap.add_argument("--objective", default="eot", choices=["eot", "mi", "ce", "mix"])
+    ap.add_argument("--alpha-kl", type=float, default=1.0)
+    ap.add_argument("--alpha-mi", type=float, default=0.0)
+    ap.add_argument("--alpha-ce", type=float, default=0.0)
+    ap.add_argument("--temperature", type=float, default=1.0)
     ap.add_argument("--steps", type=int, default=0)
     ap.add_argument("--epochs", type=int, default=12)
     ap.add_argument("--batch", type=int, default=16)
@@ -152,14 +214,25 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=1337)
     ap.add_argument("--eval-every", type=int, default=100)
     ap.add_argument("--save-every", type=int, default=500)
+    ap.add_argument("--init-model", default="")
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--resume", default=None)
     args = ap.parse_args()
 
+    if args.objective == "mix":
+        total_w = args.alpha_kl + args.alpha_mi + args.alpha_ce
+        if abs(total_w - 1.0) > 1e-6:
+            raise SystemExit(f"mix weights must sum to 1, got {total_w}")
+
     cfg = TrainConfig(
         targets=args.targets,
+        val_targets=args.val_targets,
         out=args.out,
         objective=args.objective,
+        alpha_kl=args.alpha_kl,
+        alpha_mi=args.alpha_mi,
+        alpha_ce=args.alpha_ce,
+        temperature=args.temperature,
         steps=args.steps,
         epochs=args.epochs,
         batch=args.batch,
@@ -176,6 +249,7 @@ def main() -> None:
         seed=args.seed,
         eval_every=args.eval_every,
         save_every=args.save_every,
+        init_model=args.init_model,
         device=args.device,
     )
     torch.manual_seed(cfg.seed)
@@ -190,19 +264,30 @@ def main() -> None:
     n = len(base) if not cfg.max_windows else min(len(base), cfg.max_windows)
     rng = np.random.default_rng(cfg.seed)
     order = rng.permutation(len(base))[:n]
-    if cfg.overfit:
+    if cfg.val_targets:
+        val_base = TargetDataset(cfg.val_targets, seq_len=cfg.seq_len)
+        if len(val_base) == 0:
+            raise SystemExit("no full windows in validation shards")
+        train_idx = order
+        val_idx = np.arange(len(val_base))
+    elif cfg.overfit:
         train_idx = order
         val_idx = order
     else:
         n_val = max(1, int(n * cfg.val_fraction))
         val_idx, train_idx = order[:n_val], order[n_val:]
     train_ds = WindowData(base, train_idx)
-    val_ds = WindowData(base, val_idx)
+    val_ds = WindowData(val_base if cfg.val_targets else base, val_idx)
     train_loader = make_loader(train_ds, cfg, shuffle=True)
     val_loader = make_loader(val_ds, cfg, shuffle=False)
 
     model = ByteLM(ModelConfig(max_seq_len=cfg.seq_len)).to(cfg.device)
     n_params = parameter_count(model)
+    if cfg.init_model:
+        ckpt = torch.load(cfg.init_model, map_location=cfg.device, weights_only=False)
+        model.load_state_dict(ckpt["model"])
+        print(f"initialized weights from {cfg.init_model} (step {ckpt.get('step')})")
+
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=cfg.lr, betas=(0.9, 0.95), weight_decay=cfg.weight_decay
     )
@@ -227,10 +312,12 @@ def main() -> None:
     running = 0.0
     running_n = 0
     print(json.dumps({"params": n_params, "windows": len(base), "train": len(train_ds),
-                      "val": len(val_ds), "total_steps": total_steps}, indent=2))
+                      "val": len(val_ds), "total_steps": total_steps,
+                      "objective": cfg.objective, "weights": [cfg.alpha_kl, cfg.alpha_mi, cfg.alpha_ce],
+                      "temperature": cfg.temperature, "val_targets": cfg.val_targets}, indent=2))
 
     while step < total_steps:
-        for symbols, targets, nexts in train_loader:
+        for symbols, targets, nexts, _docs in train_loader:
             if step >= total_steps:
                 break
             lr = lr_at(step, total_steps, cfg)
@@ -242,7 +329,10 @@ def main() -> None:
             with torch.autocast(device_type="cuda", dtype=torch.float16,
                                 enabled=cfg.amp and cfg.device.startswith("cuda")):
                 logits = model(symbols)
-            loss = objective_loss(logits, targets, nexts, cfg.objective)
+            loss = objective_loss(
+                logits, targets, nexts, cfg.objective, cfg.alpha_kl, cfg.alpha_mi,
+                cfg.alpha_ce, cfg.temperature,
+            )
             optimizer.zero_grad(set_to_none=True)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
@@ -272,7 +362,7 @@ def main() -> None:
                 running_n = 0
 
             if step % cfg.eval_every == 0 or step == total_steps:
-                metrics = evaluate(model, val_loader, cfg.objective, cfg.device)
+                metrics = evaluate(model, val_loader, cfg)
                 rec = {"step": step, "eval": metrics}
                 print(json.dumps(rec))
                 log.write(json.dumps(rec) + "\n")

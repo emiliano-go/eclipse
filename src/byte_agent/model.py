@@ -165,25 +165,37 @@ class ByteLM(nn.Module):
         temperature: float = 0.8,
         top_k: int = 50,
         device: str | torch.device = "cuda",
-    ) -> bytes:
+        greedy: bool = False,
+        return_stats: bool = False,
+    ):
         self.eval()
         tokens = torch.tensor([prompt], dtype=torch.long, device=device)
         logits, past = self.forward(tokens, use_cache=True)
         out = bytearray()
+        stats = {"eot": 0, "symbols": 0}
         for _ in range(max_new):
-            probs = torch.softmax(logits[0, -1].float() / temperature, dim=-1)
-            if top_k:
-                k = min(top_k, probs.numel())
-                vals, idx = torch.topk(probs, k)
-                probs = torch.zeros_like(probs).scatter_(0, idx, vals)
-                probs /= probs.sum()
-            nxt = int(torch.multinomial(probs, 1))
+            if greedy:
+                nxt = int(torch.argmax(logits[0, -1]))
+            else:
+                probs = torch.softmax(logits[0, -1].float() / temperature, dim=-1)
+                if top_k:
+                    k = min(top_k, probs.numel())
+                    vals, idx = torch.topk(probs, k)
+                    probs = torch.zeros_like(probs).scatter_(0, idx, vals)
+                    probs /= probs.sum()
+                nxt = int(torch.multinomial(probs, 1))
             if nxt == EOS:
                 break
-            if nxt < 256:
+            stats["symbols"] += 1
+            if nxt == EOT:
+                stats["eot"] += 1
+            elif nxt < 256:
                 out.append(nxt)
             tokens = torch.tensor([[nxt]], dtype=torch.long, device=device)
             logits, past = self.forward(tokens, past=past, use_cache=True)
+        stats["bytes"] = len(out)
+        if return_stats:
+            return bytes(out), stats
         return bytes(out)
 
 

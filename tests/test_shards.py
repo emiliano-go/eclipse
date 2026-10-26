@@ -38,9 +38,10 @@ def test_writer_roundtrip_and_splitting(tmp_path):
     ds = TargetDataset(tmp_path, seq_len=2)
     assert ds.n_positions == 6
     assert len(ds) == 3  # shard 0: starts 0,2; shard 1: start 0
-    symbols, targets, nexts = ds[0]
+    symbols, targets, nexts, docs = ds[0]
     np.testing.assert_array_equal(symbols, s0[:2])
     np.testing.assert_array_equal(nexts, n0[:2])
+    np.testing.assert_array_equal(docs, d0[:2])
     assert targets.shape == (2, VOCAB)
     np.testing.assert_allclose(targets.sum(axis=1), 1.0, atol=1e-4)
 
