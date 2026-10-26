@@ -30,7 +30,7 @@ static constexpr uint32_t MAGIC = 0x474F4C42u;
 
 static void usage(const char * argv0) {
     std::fprintf(stderr,
-        "usage: %s -m MODEL.gguf --ids IDS.i32 [--ctx N] [--batch N] [--ngl N] [--out FILE] [--fp32] [--limit N]\n"
+        "usage: %s -m MODEL.gguf --ids IDS.i32 [--doc-starts FILE] [--ctx N] [--batch N] [--ngl N] [--out FILE] [--fp32] [--limit N]\n"
         "       %s -m MODEL.gguf --tokenize TEXT [--out IDS.i32]\n", argv0, argv0);
 }
 
@@ -71,6 +71,7 @@ int main(int argc, char ** argv) {
     const char * model_path = nullptr;
     const char * ids_path = nullptr;
     const char * tokenize_path = nullptr;
+    const char * doc_starts_path = nullptr;
     const char * out_path = nullptr;
     int32_t ctx_size = 2048;
     int32_t n_batch = 256;
@@ -86,6 +87,7 @@ int main(int argc, char ** argv) {
         if (!std::strcmp(argv[i], "-m") || !std::strcmp(argv[i], "--model")) model_path = need("--model");
         else if (!std::strcmp(argv[i], "--ids")) ids_path = need("--ids");
         else if (!std::strcmp(argv[i], "--tokenize")) tokenize_path = need("--tokenize");
+        else if (!std::strcmp(argv[i], "--doc-starts")) doc_starts_path = need("--doc-starts");
         else if (!std::strcmp(argv[i], "--out")) out_path = need("--out");
         else if (!std::strcmp(argv[i], "--ctx")) ctx_size = std::atoi(need("--ctx"));
         else if (!std::strcmp(argv[i], "--batch")) n_batch = std::atoi(need("--batch"));
@@ -136,6 +138,22 @@ int main(int argc, char ** argv) {
     if (limit >= 0 && static_cast<size_t>(limit) < ids.size()) ids.resize(static_cast<size_t>(limit));
     if (ids.empty()) { std::fprintf(stderr, "no ids\n"); return 1; }
 
+    std::vector<int32_t> doc_starts;
+    if (doc_starts_path) {
+        doc_starts = read_ids(doc_starts_path);
+        if (doc_starts.empty() || doc_starts.front() != 0) {
+            std::fprintf(stderr, "doc-starts must begin at 0\n");
+            return 1;
+        }
+        for (size_t i = 1; i < doc_starts.size(); ++i) {
+            if (doc_starts[i] < doc_starts[i - 1] || doc_starts[i] > static_cast<int32_t>(ids.size())) {
+                std::fprintf(stderr, "doc-starts must be sorted and within ids\n");
+                return 1;
+            }
+        }
+        doc_starts.push_back(static_cast<int32_t>(ids.size()));
+    }
+
     llama_context_params cparams = llama_context_default_params();
     cparams.n_ctx = static_cast<uint32_t>(ctx_size);
     cparams.n_batch = static_cast<uint32_t>(n_batch);
@@ -159,63 +177,80 @@ int main(int argc, char ** argv) {
     const int64_t t0 = llama_time_us();
     size_t done = 0;
 
-    // Decode in chunks of at most n_ctx tokens. Memory is cleared per chunk,
-    // but NOT between sub-batches, so every token attends to the preceding
-    // tokens of its chunk. Logits are still emitted only n_batch at a time.
-    for (size_t chunk_start = 0; chunk_start < ids.size(); chunk_start += static_cast<size_t>(ctx_size)) {
-        const int32_t chunk_len = static_cast<int32_t>(
-            std::min<size_t>(static_cast<size_t>(ctx_size), ids.size() - chunk_start));
-        llama_memory_clear(llama_get_memory(ctx), true);
+    // Decode each document (or the whole stream) in segments of at most
+    // n_ctx tokens. Memory is cleared at every segment start and at every
+    // document start, but not between sub-batches, so tokens see their
+    // preceding context within the current document/segment.
+    auto decode_range = [&](size_t doc_begin, size_t doc_end, int32_t doc_id) {
+        for (size_t seg = doc_begin; seg < doc_end; seg += static_cast<size_t>(ctx_size)) {
+            const size_t seg_end = std::min(seg + static_cast<size_t>(ctx_size), doc_end);
+            llama_memory_clear(llama_get_memory(ctx), true);
 
-        for (int32_t sub = 0; sub < chunk_len; sub += n_batch) {
-        const int32_t n = std::min(n_batch, chunk_len - sub);
-        const size_t start = chunk_start + static_cast<size_t>(sub);
+            for (size_t sub = seg; sub < seg_end; sub += static_cast<size_t>(n_batch)) {
+                const int32_t n = static_cast<int32_t>(
+                    std::min<size_t>(static_cast<size_t>(n_batch), seg_end - sub));
+                batch.n_tokens = n;
+                for (int32_t i = 0; i < n; ++i) {
+                    batch.token[i] = ids[sub + static_cast<size_t>(i)];
+                    batch.pos[i] = static_cast<llama_pos>(sub - seg) + i;
+                    batch.n_seq_id[i] = 1;
+                    batch.seq_id[i][0] = 0;
+                    batch.logits[i] = 1;
+                }
 
-        batch.n_tokens = n;
-        for (int32_t i = 0; i < n; ++i) {
-            batch.token[i] = ids[start + static_cast<size_t>(i)];
-            batch.pos[i] = sub + i;
-            batch.n_seq_id[i] = 1;
-            batch.seq_id[i][0] = 0;
-            batch.logits[i] = 1;
-        }
+                if (llama_decode(ctx, batch) != 0) {
+                    std::fprintf(stderr, "llama_decode failed at %zu\n", sub);
+                    return false;
+                }
 
-        if (llama_decode(ctx, batch) != 0) {
-            std::fprintf(stderr, "llama_decode failed at %zu\n", start);
-            return 1;
-        }
+                const uint32_t flags = fp32 ? 1u : 0u;
+                const uint32_t hdr[6] = {MAGIC, static_cast<uint32_t>(n),
+                                         static_cast<uint32_t>(n_vocab),
+                                         static_cast<uint32_t>(sub - doc_begin), flags,
+                                         static_cast<uint32_t>(doc_id)};
+                write_all(out, hdr, sizeof(hdr));
+                write_all(out, ids.data() + sub, static_cast<size_t>(n) * sizeof(int32_t));
 
-        const uint32_t flags = fp32 ? 1u : 0u;
-        const uint32_t hdr[5] = {MAGIC, static_cast<uint32_t>(n), static_cast<uint32_t>(n_vocab),
-                                 static_cast<uint32_t>(start), flags};
-        write_all(out, hdr, sizeof(hdr));
-        write_all(out, ids.data() + start, static_cast<size_t>(n) * sizeof(int32_t));
+                if (fp32) {
+                    buf32.resize(static_cast<size_t>(n) * static_cast<size_t>(n_vocab));
+                    for (int32_t i = 0; i < n; ++i) {
+                        const float * row = llama_get_logits_ith(ctx, i);
+                        std::memcpy(buf32.data() + static_cast<size_t>(i) * n_vocab, row,
+                                    static_cast<size_t>(n_vocab) * sizeof(float));
+                    }
+                    write_all(out, buf32.data(), buf32.size() * sizeof(float));
+                } else {
+                    buf16.resize(static_cast<size_t>(n) * static_cast<size_t>(n_vocab));
+                    for (int32_t i = 0; i < n; ++i) {
+                        const float * row = llama_get_logits_ith(ctx, i);
+                        uint16_t * dst = buf16.data() + static_cast<size_t>(i) * n_vocab;
+                        for (int j = 0; j < n_vocab; ++j) dst[j] = ggml_fp32_to_fp16(row[j]);
+                    }
+                    write_all(out, buf16.data(), buf16.size() * sizeof(uint16_t));
+                }
+                std::fflush(out);
 
-        if (fp32) {
-            buf32.resize(static_cast<size_t>(n) * static_cast<size_t>(n_vocab));
-            for (int32_t i = 0; i < n; ++i) {
-                const float * row = llama_get_logits_ith(ctx, i);
-                std::memcpy(buf32.data() + static_cast<size_t>(i) * n_vocab, row,
-                            static_cast<size_t>(n_vocab) * sizeof(float));
+                done += static_cast<size_t>(n);
+                const double secs = static_cast<double>(llama_time_us() - t0) / 1e6;
+                std::fprintf(stderr, "\rdoc=%d %d/%zu tokens  %.1f tok/s  ctx=%d batch=%d",
+                             doc_id, n, done, static_cast<double>(done) / std::max(secs, 1e-9),
+                             ctx_size, n_batch);
             }
-            write_all(out, buf32.data(), buf32.size() * sizeof(float));
-        } else {
-            buf16.resize(static_cast<size_t>(n) * static_cast<size_t>(n_vocab));
-            for (int32_t i = 0; i < n; ++i) {
-                const float * row = llama_get_logits_ith(ctx, i);
-                uint16_t * dst = buf16.data() + static_cast<size_t>(i) * n_vocab;
-                for (int j = 0; j < n_vocab; ++j) dst[j] = ggml_fp32_to_fp16(row[j]);
-            }
-            write_all(out, buf16.data(), buf16.size() * sizeof(uint16_t));
         }
-        std::fflush(out);
+        return true;
+    };
 
-        done += static_cast<size_t>(n);
-        const double secs = static_cast<double>(llama_time_us() - t0) / 1e6;
-        std::fprintf(stderr, "\r%d/%zu tokens  %.1f tok/s  ctx=%d batch=%d",
-                     n, done, static_cast<double>(done) / std::max(secs, 1e-9), ctx_size, n_batch);
+    bool ok = true;
+    if (!doc_starts.empty()) {
+        for (size_t i = 0; i + 1 < doc_starts.size() && ok; ++i) {
+            const size_t begin = static_cast<size_t>(doc_starts[i]);
+            const size_t end = static_cast<size_t>(doc_starts[i + 1]);
+            if (end > begin) ok = decode_range(begin, end, static_cast<int32_t>(i));
         }
+    } else {
+        ok = decode_range(0, ids.size(), 0);
     }
+    if (!ok) return 1;
     std::fprintf(stderr, "\n");
 
     if (out_path) std::fclose(out);

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from byte_agent.token_bytes import TokenizerSpec
-from byte_agent.trie import EOT, N_BYTES, TokenTable, marginalize_it
+from byte_agent.trie import EOT, N_BYTES, TokenTable, _softmax_fp32, marginalize_it
 
 
 def paper_vocab() -> dict[int, bytes]:
@@ -106,3 +106,22 @@ def test_dfs_intervals_are_contiguous():
         assert 0 <= lo <= hi <= len(table.order_ids)
         assert table.exact_lo[node] <= table.exact_hi[node]
         assert lo <= table.exact_lo[node] <= table.exact_hi[node] <= hi
+
+
+def test_softmax_floor_avoids_zero_mass():
+    p = _softmax_fp32(np.array([[0.0, -200.0]], dtype=np.float32))
+    assert np.isfinite(p).all()
+    assert p[0, 1] > 0
+    assert p.sum() == pytest.approx(1.0, abs=1e-6)
+
+
+def test_rare_observed_token_survives_cumulative_cancellation():
+    vocab = {i: f"t{i}".encode() for i in range(300)}
+    table = TokenTable.from_vocab_bytes(vocab)
+    p = np.full(300, (1.0 - 1e-9) / 299.0, dtype=np.float32)
+    p[0] = 1e-9
+    rows = table.convert_row(np.log(p).astype(np.float32), token_id=0)
+    assert np.isfinite(rows).all()
+    assert rows[1][ord("0")] == pytest.approx(1e-9, rel=0.1)
+    assert rows[-1][EOT] == pytest.approx(1.0, abs=1e-4)
+    np.testing.assert_allclose(rows.sum(axis=1), 1.0, atol=1e-4)

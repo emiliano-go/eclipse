@@ -52,6 +52,19 @@ tokens. The project decision is raw text without chat framing; the known
 consequence is that samples may inherit the teacher's thinking-mode framing.
 See `reports/phase0.md` and `reports/phase1.md`.
 
-Next: staged teacher extraction into 260-symbol EOT target shards.
+The extraction pipeline is implemented: document-aware teacher chunks, a
+streaming logits dumper, exact EOT/Marginalize-It conversion, and 260-symbol
+fp16 shards with explicit `next_symbols`. Stage 1 (100k tokens) produced
+457,461 validated positions in 8.4 minutes.
+
+The 48M student overfits 32 windows to BPB 0.331 (EOT KL 0.013) in 85 s.
+On 500-step matched runs: EOT BPB 1.200 / KL 0.526 / top-1 0.828;
+Marginalize-It BPB 1.166 / KL 0.693 / top-1 0.566; byte-CE BPB 1.196 /
+KL 0.672 / top-1 0.843. EOT transfers the teacher distribution best; MI
+wins content-only BPB because it has no EOT mass. See
+`reports/phase5-6.md`.
+
+Next: 1M-token extraction or the full ~6.8 h corpus run, then the
+token-student control.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.

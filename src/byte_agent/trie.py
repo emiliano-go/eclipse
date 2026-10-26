@@ -32,6 +32,10 @@ VOCAB_SIZE = 260
 def _softmax_fp32(logits: np.ndarray) -> np.ndarray:
     x = logits.astype(np.float32, copy=False)
     x = x - x.max(axis=1, keepdims=True)
+    # fp16 logit dumps can have gaps > 100 to the observed token. exp() would
+    # underflow that token's prefix mass to zero and make the target NaN.
+    # A -60 floor keeps the tail finite (~1e-26) without affecting useful mass.
+    np.maximum(x, -60.0, out=x)
     e = np.exp(x, out=x)
     e /= e.sum(axis=1, keepdims=True)
     return e
@@ -223,7 +227,9 @@ class TokenTable:
             raise ValueError("observed token has no bytes")
 
         n = len(ids)
+        rows = np.arange(n)
         p = _softmax_fp32(logits)
+        p_token = p[rows, ids]
         # Tokens beyond the tokenizer table (padding ids) are boundary mass.
         p_dfs = p[:, self.order_ids]
         c = np.empty((n, p_dfs.shape[1] + 1), dtype=np.float32)
@@ -233,7 +239,6 @@ class TokenTable:
         special_mass = 1.0 - root_mass
 
         max_len = int(lens.max())
-        rows = np.arange(n)
         targets = np.zeros((n, max_len + 1, VOCAB_SIZE), dtype=np.float32)
         node = np.zeros(n, dtype=np.int32)
         bytes_padded = self.token_bytes_padded[ids]
@@ -244,28 +249,48 @@ class TokenTable:
                 break
             sel = rows[active]
             nodes = node[active]
+            pt = p_token[sel]
             mass = c[sel, self.node_hi[nodes]] - c[sel, self.node_lo[nodes]]
-            denom = np.ones(len(sel), dtype=np.float32) if d == 0 else mass
+            # A rare observed token's prefix mass can vanish in the float32
+            # cumulative difference. Its own probability is a valid floor.
+            denom = np.ones(len(sel), dtype=np.float32) if d == 0 else np.maximum(mass, pt)
 
             kids = self.child[nodes]
             safe = np.maximum(kids, 0)
             cmass = c[sel[:, None], self.node_hi[safe]] - c[sel[:, None], self.node_lo[safe]]
             cmass[kids < 0] = 0.0
-            targets[active, d, :N_BYTES] = cmass / denom[:, None]
+            np.maximum(cmass, 0.0, out=cmass)
+
+            cont_mask = lens[sel] > d
+            if cont_mask.any():
+                ci = np.where(cont_mask)[0]
+                b = bytes_padded[sel[ci], d].astype(np.int64)
+                cmass[ci, b] = np.maximum(cmass[ci, b], pt[ci])
 
             exact = c[sel, self.exact_hi[nodes]] - c[sel, self.exact_lo[nodes]]
-            targets[active, d, EOT] = exact / denom
+            eot = exact / denom
+            term = lens[sel] == d
+            if term.any():
+                # At the terminal node the exact mass is the observed token.
+                eot[term] = pt[term] / denom[term]
             if d == 0:
-                # Special tokens and padding ids are zero-byte boundaries.
-                targets[active, d, EOT] += special_mass[active]
+                eot += special_mass[sel]
+            np.maximum(eot, 0.0, out=eot)
 
-            cont_idx = np.where(lens > d)[0]
-            if len(cont_idx):
-                b = bytes_padded[cont_idx, d].astype(np.int64)
-                nxt = self.child[node[cont_idx], b]
+            row = np.zeros((len(sel), VOCAB_SIZE), dtype=np.float32)
+            row[:, :N_BYTES] = cmass / denom[:, None]
+            row[:, EOT] = eot
+            np.maximum(row, 0.0, out=row)
+            row /= np.maximum(row.sum(axis=1, keepdims=True), 1e-30)
+            targets[active, d] = row
+
+            if cont_mask.any():
+                ci = np.where(cont_mask)[0]
+                b = bytes_padded[sel[ci], d].astype(np.int64)
+                nxt = self.child[node[sel[ci]], b]
                 if (nxt < 0).any():
                     raise RuntimeError("observed token path missing from trie")
-                node[cont_idx] = nxt
+                node[sel[ci]] = nxt
 
         out = [targets[i, : lens[i] + 1] for i in range(n)]
         return out, lens + 1

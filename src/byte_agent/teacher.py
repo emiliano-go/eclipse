@@ -18,7 +18,7 @@ from typing import Iterator
 import numpy as np
 
 MAGIC = 0x474F4C42
-HEADER = struct.Struct("<5I")
+HEADER = struct.Struct("<6I")
 
 
 class DumperError(RuntimeError):
@@ -27,6 +27,7 @@ class DumperError(RuntimeError):
 
 @dataclass
 class Batch:
+    doc_id: int
     first_pos: int
     token_ids: np.ndarray  # int32
     logits: np.ndarray  # (n, vocab) float16 or float32
@@ -43,6 +44,7 @@ class TeacherDumper:
         binary: str | Path | None = None,
         ctx: int = 2048,
         batch: int = 256,
+        ngl: int = 99,
         fp32: bool = False,
         limit: int | None = None,
     ) -> None:
@@ -50,6 +52,7 @@ class TeacherDumper:
         self.binary = str(binary or default_binary())
         self.ctx = ctx
         self.batch = batch
+        self.ngl = ngl
         self.fp32 = fp32
         self.limit = limit
 
@@ -75,11 +78,19 @@ class TeacherDumper:
                 except FileNotFoundError:
                     pass
 
-    def stream(self, ids: np.ndarray) -> Iterator[Batch]:
+    def stream(self, ids: np.ndarray, doc_starts: np.ndarray | None = None) -> Iterator[Batch]:
         ids = np.ascontiguousarray(ids, dtype=np.int32)
+        temps: list[str] = []
         with tempfile.NamedTemporaryFile(suffix=".i32", delete=False) as tf:
             ids_path = tf.name
+            temps.append(ids_path)
             ids.tofile(tf)
+        doc_starts_path = None
+        if doc_starts is not None:
+            with tempfile.NamedTemporaryFile(suffix=".i32", delete=False) as tf:
+                doc_starts_path = tf.name
+                temps.append(doc_starts_path)
+                np.ascontiguousarray(doc_starts, dtype=np.int32).tofile(tf)
 
         cmd = [
             self.binary,
@@ -91,7 +102,11 @@ class TeacherDumper:
             str(self.ctx),
             "--batch",
             str(self.batch),
+            "--ngl",
+            str(self.ngl),
         ]
+        if doc_starts_path is not None:
+            cmd += ["--doc-starts", doc_starts_path]
         if self.fp32:
             cmd.append("--fp32")
         if self.limit is not None:
@@ -108,7 +123,7 @@ class TeacherDumper:
                 header = _read_exact(proc.stdout, HEADER.size)
                 if header is None:
                     break
-                magic, n, vocab, first_pos, flags = HEADER.unpack(header)
+                magic, n, vocab, first_pos, flags, doc_id = HEADER.unpack(header)
                 if magic != MAGIC:
                     raise DumperError(f"bad magic {magic:#x}")
                 raw_ids = _read_exact(proc.stdout, 4 * n)
@@ -117,6 +132,7 @@ class TeacherDumper:
                 if raw_ids is None or raw_logits is None:
                     raise DumperError("truncated record")
                 yield Batch(
+                    doc_id=doc_id,
                     first_pos=first_pos,
                     token_ids=np.frombuffer(raw_ids, dtype=np.int32).copy(),
                     logits=np.frombuffer(raw_logits, dtype=dtype).reshape(n, vocab),
@@ -125,7 +141,11 @@ class TeacherDumper:
             proc.stdout.close()
             proc.wait()
             drain.join(timeout=2)
-            os.unlink(ids_path)
+            for path in temps:
+                try:
+                    os.unlink(path)
+                except FileNotFoundError:
+                    pass
 
         if proc.returncode != 0:
             tail = b"".join(err_chunks)[-4000:].decode("utf-8", "replace")

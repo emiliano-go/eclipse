@@ -31,8 +31,18 @@ corpus:
     val_tokens: 136916
 
 extraction:
-  stages: [100000, 1000000, 5000000]   # teacher tokens
+  stages: [100000, 1000000, 6600000]   # teacher tokens
   audit_tokens: 100000
+  workers: 8
+  shard_positions: 250000
+  stage1_result:
+    docs: 18
+    teacher_tokens: 132396
+    positions: 457461
+    content_bytes: 325065
+    seconds: 490.1
+    teacher_tokens_per_s: 270.2
+    target_gb: 0.238
   max_kl_nats: 0.05
   min_top1_agreement: 0.98
   min_tokens_per_second: 100

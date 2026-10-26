@@ -116,3 +116,16 @@ Phase 0 gate is met: qwen3_5 loads, token-id parity is exact, the dumper
 is deterministic, conversion invariants hold on real logits, and the 9B
 teacher throughput is measured. Phase 1 (corpus) and Phase 2 (trie
 hardening) can proceed.
+
+## Protocol v2 (used by extraction)
+
+- Dumper header is six `uint32` fields: magic, n_tokens, n_vocab,
+  first_pos, flags, doc_id.
+- `--doc-starts` resets memory at every document boundary;
+  `--ngl` controls layer offload.
+- Determinism was re-checked after the protocol change: two independent
+  dumps of 106 tokens produced byte-identical files.
+- Conversion now uses a float32 cumulative sum plus the observed token's
+  probability as a prefix-mass floor, clamps negative fp16 artifacts, and
+  stores an explicit `next_symbols` array. The stage-1 scan found no
+  non-finite rows, no negatives, and unit row sums.
