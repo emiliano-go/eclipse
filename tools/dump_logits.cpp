@@ -10,6 +10,7 @@
 //   uint32 first_pos
 //   uint32 flags     0 = fp16, 1 = fp32
 //   int32  ids[n_tokens]
+//   int32  observed[n_tokens]   (next token, -1 at the end of a document)
 //   logits[n_tokens][n_vocab]   (fp16 or fp32, row-major)
 //
 // The Python driver converts each record to byte/EOT targets immediately;
@@ -210,6 +211,14 @@ int main(int argc, char ** argv) {
                                          static_cast<uint32_t>(doc_id)};
                 write_all(out, hdr, sizeof(hdr));
                 write_all(out, ids.data() + sub, static_cast<size_t>(n) * sizeof(int32_t));
+
+                std::vector<int32_t> observed(static_cast<size_t>(n));
+                for (int32_t i = 0; i < n; ++i) {
+                    const size_t pos = sub + static_cast<size_t>(i);
+                    observed[static_cast<size_t>(i)] =
+                        (pos + 1 < doc_end) ? ids[pos + 1] : -1;
+                }
+                write_all(out, observed.data(), static_cast<size_t>(n) * sizeof(int32_t));
 
                 if (fp32) {
                     buf32.resize(static_cast<size_t>(n) * static_cast<size_t>(n_vocab));

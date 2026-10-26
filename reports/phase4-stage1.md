@@ -69,3 +69,28 @@ risks.
 - `/data/ornith-byte/targets/train-100k/` — shards, manifests, report.
 - `scripts/validate_shards.py` — full-scan structural checks.
 - `src/byte_agent/{shards,extract}.py` — writer/reader and extraction loop.
+
+## Correction (2026-10-26): Python float32 precision, C++ converter
+
+The stage-1 implementation used a float32 cumulative sum in Python. On a
+float64 reference, that path can misallocate rare-prefix mass by up to
+**0.789** in a target row. The error is largest where a token is a prefix of
+other tokens and the interval is tiny relative to the total mass. Row sums
+stay 1 and the observed path is floored, so the data was structurally valid
+but not exact.
+
+The C++ converter uses a double cumulative sum and matches the float64
+reference to **1.3e-7**. It reads the dumper's raw records plus an explicit
+`observed[]` array, converts against the exported trie, and writes only
+target rows (no raw logits through Python). A 1k-token end-to-end shard
+passes all counts and invariants.
+
+Consequences:
+
+- The 100k shards and the training numbers in `phase5-6.md` are
+  preliminary; they used the superseded float32 converter.
+- The Python 1M run was stopped at 35% and its partial shards discarded.
+- The 1M run is being repeated with `--cpp-targets --ngl 32 --threads 8`.
+- `scripts/export_trie.py`, `scripts/build_converter.sh`,
+  `scripts/test_converter.py` and `src/byte_agent/teacher.py:stream_targets`
+  implement the new path.

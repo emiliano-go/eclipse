@@ -102,6 +102,10 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--shard-positions", type=int, default=250_000)
     ap.add_argument("--teacher-sha", default="")
+    ap.add_argument("--cpp-targets", action="store_true")
+    ap.add_argument("--trie", default="/data/ornith-byte/models/trie.bin")
+    ap.add_argument("--converter", default="/data/ornith-byte/tools/convert_targets")
+    ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--no-checksum", action="store_true")
     args = ap.parse_args()
 
@@ -111,12 +115,14 @@ def main() -> None:
     tok = Tokenizer.from_file(args.tokenizer)
 
     selected: list[np.ndarray] = []
+    selected_texts: list[str] = []
     total_tokens = 0
     for text in docs:
         ids = np.asarray(tok.encode(text).ids, dtype=np.int32)
         if len(ids) == 0:
             continue
         selected.append(ids)
+        selected_texts.append(text)
         total_tokens += len(ids)
         if args.limit_tokens and total_tokens >= args.limit_tokens:
             break
@@ -134,10 +140,7 @@ def main() -> None:
     stream_arr = np.asarray(stream, dtype=np.int32)
     starts_arr = np.asarray(doc_starts, dtype=np.int32)
 
-    # Content bytes are the UTF-8 lengths of the selected token byte strings.
-    # This is the strongest alignment check available after writing.
-    table = TokenTable.load(args.table)
-    expected_bytes = sum(int(table.token_len[ids].sum()) for ids in selected)
+    expected_bytes = sum(len(t.encode("utf-8")) for t in selected_texts)
     n_tokens = sum(len(ids) for ids in selected)
     n_docs = len(selected)
 
@@ -149,6 +152,7 @@ def main() -> None:
                 "stream_positions": int(len(stream_arr)),
                 "content_bytes": expected_bytes,
                 "expected_symbols": expected_bytes + n_tokens,
+                "pipeline": "cpp" if args.cpp_targets else "python",
             },
             indent=2,
         )
@@ -162,7 +166,7 @@ def main() -> None:
             "teacher_sha256": args.teacher_sha,
             "corpus": str(corpus_dir),
             "split": args.split,
-            "conversion": CONVERSION,
+            "conversion": "eot-dfs-v1-cpp" if args.cpp_targets else CONVERSION,
             "bos_token": BOS_TOKEN,
             "ctx": args.ctx,
             "batch": args.batch,
@@ -182,49 +186,67 @@ def main() -> None:
         ngl=args.ngl,
     )
 
-    pool = ThreadPoolExecutor(max_workers=args.workers)
-    pending: deque = deque()
-    max_pending = args.workers * 2
     rows_written = 0
     last_report = time.time()
 
-    def flush_one() -> None:
-        nonlocal rows_written
-        symbols, nexts, kinds, doc_ids, targets = pending.popleft().result()
-        writer.append(symbols, kinds, doc_ids, targets, nexts)
-        rows_written += len(symbols)
+    if args.cpp_targets:
+        last_doc = -1
+        for tb in dumper.stream_targets(
+            stream_arr, starts_arr, args.trie, args.converter, args.threads
+        ):
+            writer.append(
+                tb.symbols, tb.kinds, tb.doc_ids, tb.targets.astype(np.float16), tb.nexts
+            )
+            rows_written += len(tb.symbols)
+            if tb.doc_id != last_doc and time.time() - last_report > 20:
+                elapsed = time.time() - t_start
+                print(f"\rdocs={tb.doc_id + 1}/{n_docs} rows={rows_written} elapsed={elapsed:.0f}s",
+                      end="", flush=True)
+                last_report = time.time()
+                last_doc = tb.doc_id
+    else:
+        table = TokenTable.load(args.table)
+        pool = ThreadPoolExecutor(max_workers=args.workers)
+        pending: deque = deque()
+        max_pending = args.workers * 2
 
-    for batch in dumper.stream(stream_arr, starts_arr):
-        d = batch.doc_id
-        m = len(selected[d])
-        p = batch.first_pos
-        end = min(p + len(batch.token_ids), m)
-        if p >= end:
-            continue
-        sub = end - p
-        first = np.zeros(sub, dtype=bool)
-        first[0] = p == 0
-        doc_ids = np.full(sub, d, dtype=np.int32)
-        fut = pool.submit(
-            convert_batch,
-            batch.logits[:sub],
-            selected[d][p:end],
-            first,
-            doc_ids,
-            table,
-        )
-        pending.append(fut)
-        while len(pending) >= max_pending:
+        def flush_one() -> None:
+            nonlocal rows_written
+            symbols, nexts, kinds, doc_ids, targets = pending.popleft().result()
+            writer.append(symbols, kinds, doc_ids, targets, nexts)
+            rows_written += len(symbols)
+
+        for batch in dumper.stream(stream_arr, starts_arr):
+            d = batch.doc_id
+            m = len(selected[d])
+            p = batch.first_pos
+            end = min(p + len(batch.token_ids), m)
+            if p >= end:
+                continue
+            sub = end - p
+            first = np.zeros(sub, dtype=bool)
+            first[0] = p == 0
+            doc_ids = np.full(sub, d, dtype=np.int32)
+            fut = pool.submit(
+                convert_batch,
+                batch.logits[:sub],
+                selected[d][p:end],
+                first,
+                doc_ids,
+                table,
+            )
+            pending.append(fut)
+            while len(pending) >= max_pending:
+                flush_one()
+            if time.time() - last_report > 20:
+                elapsed = time.time() - t_start
+                print(f"\rdocs={d + 1}/{n_docs} rows={rows_written} elapsed={elapsed:.0f}s",
+                      end="", flush=True)
+                last_report = time.time()
+
+        while pending:
             flush_one()
-        if time.time() - last_report > 20:
-            elapsed = time.time() - t_start
-            print(f"\rdocs={d + 1}/{n_docs} rows={rows_written} elapsed={elapsed:.0f}s",
-                  end="", flush=True)
-            last_report = time.time()
-
-    while pending:
-        flush_one()
-    pool.shutdown(wait=True)
+        pool.shutdown(wait=True)
 
     manifest = writer.close()
     elapsed = time.time() - t_start
@@ -248,6 +270,7 @@ def main() -> None:
         "teacher_tokens_per_s": round(n_tokens / elapsed, 1),
         "shards": manifest["n_shards"],
         "target_gb": round(manifest["n_positions"] * VOCAB * 2 / 1e9, 3),
+        "pipeline": "cpp" if args.cpp_targets else "python",
     }
     (Path(args.out) / "extract_report.json").write_text(json.dumps(summary, indent=2))
     print(json.dumps(summary, indent=2))

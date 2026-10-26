@@ -1,5 +1,11 @@
 # Phase 5–6 report — dense student, overfit, three-way comparison
 
+> **Correction (2026-10-26):** these runs used the Python float32
+> converter, which can misallocate rare-prefix targets by up to 0.789.
+> The numbers are preliminary and will be repeated on C++-converted 1M
+> targets. The overfit test and the structural alignment conclusions
+> remain valid.
+
 Date: 2026-10-25.
 
 ## Student

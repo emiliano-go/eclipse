@@ -8,7 +8,13 @@ TOKENS="${1:-1000000}"
 OUT="${2:-$ROOT/targets/train-1m}"
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 PY="$ROOT/venv/bin/python"
-NGL="${NGL:-30}"
+NGL="${NGL:-32}"
+CPP="${CPP:-1}"
+if [ "$CPP" = "1" ]; then
+  EXTRA=(--cpp-targets --threads 8)
+else
+  EXTRA=(--workers 8)
+fi
 SHA="$(python3 -c 'import json;print(json.load(open("models.lock"))["teacher"]["files"]["Ornith-1.5-9B-Q5_K_M.gguf"]["sha256"])')"
 
 rm -rf "$OUT"
@@ -22,7 +28,7 @@ PYTHONPATH=src "$PY" -m byte_agent.extract \
   --ctx 4096 \
   --batch 64 \
   --ngl "$NGL" \
-  --workers 8 \
-  --shard-positions 250000
+  --shard-positions 250000 \
+  "${EXTRA[@]}"
 
 PYTHONPATH=src "$PY" scripts/validate_shards.py --root "$OUT" --sample 0

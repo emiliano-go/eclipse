@@ -64,7 +64,13 @@ KL 0.672 / top-1 0.843. EOT transfers the teacher distribution best; MI
 wins content-only BPB because it has no EOT mass. See
 `reports/phase5-6.md`.
 
-Next: 1M-token extraction or the full ~6.8 h corpus run, then the
-token-student control.
+A precision audit found the Python converter's float32 cumulative sum can
+misallocate rare-prefix targets (up to 0.789 vs a float64 reference). The
+new C++ converter (`tools/convert_targets.cpp`) matches the reference to
+1.3e-7. The 1M extraction is being repeated through the C++ path; the
+earlier 100k training numbers are preliminary.
+
+Next: validate the 1M C++ shard, repeat the three-way comparison, then
+decide on the full corpus.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.
