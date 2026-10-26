@@ -35,7 +35,22 @@ extraction:
   audit_tokens: 100000
   workers: 8
   shard_positions: 250000
+  cpp_targets: true
+  trie: /data/ornith-byte/models/trie.bin
+  converter: /data/ornith-byte/tools/convert_targets
+  threads: 8
+  stage2_result:
+    docs: 231
+    teacher_tokens: 1000497
+    positions: 4014129
+    content_bytes: 3013632
+    seconds: 2319.7
+    teacher_tokens_per_s: 431.3
+    target_gb: 2.087
+    full_corpus_projection_hours: 4.25
+    full_corpus_projection_gb: 13.8
   stage1_result:
+    superseded_by_cpp: true
     docs: 18
     teacher_tokens: 132396
     positions: 457461

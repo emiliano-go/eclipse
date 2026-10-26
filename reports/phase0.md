@@ -129,3 +129,13 @@ hardening) can proceed.
   probability as a prefix-mass floor, clamps negative fp16 artifacts, and
   stores an explicit `next_symbols` array. The stage-1 scan found no
   non-finite rows, no negatives, and unit row sums.
+
+## Protocol v3 (C++ converter)
+
+The dumper now emits `int32 observed[n]` after the input ids (the next
+token for each position, `-1` at a document end). The standalone
+`convert_targets` reads that field, converts against the exported trie,
+and writes target records. The Python raw-logits parser was updated in
+lockstep. This removed the Python conversion bottleneck and fixed the
+float32 cumulative-sum precision issue: the C++ converter matches a
+float64 reference within 1.3e-7.

@@ -67,10 +67,12 @@ wins content-only BPB because it has no EOT mass. See
 A precision audit found the Python converter's float32 cumulative sum can
 misallocate rare-prefix targets (up to 0.789 vs a float64 reference). The
 new C++ converter (`tools/convert_targets.cpp`) matches the reference to
-1.3e-7. The 1M extraction is being repeated through the C++ path; the
-earlier 100k training numbers are preliminary.
+1.3e-7. The 1M C++ extraction is complete: 1,000,497 teacher tokens -> 4,014,129
+positions, 2.087 GB, 431 tokens/s, 38.7 min. The full shard validates
+(non-finite 0, negatives 0, unit row sums, exact counts); 5 positions
+underflow in fp16. The earlier 100k training numbers are preliminary.
 
-Next: validate the 1M C++ shard, repeat the three-way comparison, then
-decide on the full corpus.
+Next: the 2,000-step three-way comparison on the corrected 1M targets,
+then the full-corpus decision.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.

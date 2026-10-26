@@ -94,3 +94,29 @@ Consequences:
 - `scripts/export_trie.py`, `scripts/build_converter.sh`,
   `scripts/test_converter.py` and `src/byte_agent/teacher.py:stream_targets`
   implement the new path.
+
+## Stage 2 (1M) — C++ converter result
+
+| property | value |
+|---|---:|
+| documents | 231 |
+| teacher tokens | 1,000,497 |
+| content bytes | 3,013,632 |
+| student positions | 4,014,129 |
+| shards | 17 |
+| target size | 2.087 GB |
+| extraction time | 2319.7 s (38.7 min) |
+| rate | **431.3 teacher tokens/s** |
+
+Counts: byte 3,013,632; EOT 1,000,266; BOS 231; next-byte 3,013,632;
+next-EOT 1,000,497. A full scan found no non-finite rows, no negatives,
+unit row sums, exact counts, and non-decreasing document ids.
+
+Five positions (1.25e-6 of checked positions) have the observed symbol's
+probability below the fp16 minimum and therefore underflow to zero in the
+stored shard. This is a storage artifact, not a conversion error; the C++
+converter's float32 output was positive.
+
+The C++ path runs at 431 tok/s versus 270 tok/s for the Python converter.
+The teacher is now the bottleneck, not conversion. Full-corpus projection:
+**~4.25 h and ~13.8 GB** for 6.59M tokens.
