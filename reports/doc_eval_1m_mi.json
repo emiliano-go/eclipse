@@ -1,0 +1,601 @@
+{
+  "checkpoint": "/data/ornith-byte/runs/1m/mi/final.pt",
+  "documents": {
+    "overall": {
+      "positions": 557056,
+      "bytes": 420313,
+      "bpb": 1.228186713332201,
+      "bpb_eot_inclusive": 6.562389827358019,
+      "teacher_kl": 3.286799258442924,
+      "top1": 0.5826056985294118
+    },
+    "per_domain": {
+      "docs": {
+        "bytes": 360211,
+        "bpb": 1.14478795893647,
+        "bpb_eot_inclusive": 6.695257571477083,
+        "teacher_kl": 3.329244756565807,
+        "top1": 0.5890655526457995
+      },
+      "python": {
+        "bytes": 60102,
+        "bpb": 1.7280228039721246,
+        "bpb_eot_inclusive": 5.766069855029771,
+        "teacher_kl": 3.0177884179502263,
+        "top1": 0.5416644712577059
+      }
+    },
+    "per_doc": [
+      {
+        "doc_id": 0,
+        "domain": "docs",
+        "positions": 8315,
+        "bytes": 6380,
+        "bpb": 0.7655843341844926,
+        "bpb_eot_inclusive": 5.991615262097303,
+        "teacher_kl": 3.0984998380714917,
+        "top1": 0.6539987973541792
+      },
+      {
+        "doc_id": 1,
+        "domain": "docs",
+        "positions": 9150,
+        "bytes": 6972,
+        "bpb": 0.5082114542368228,
+        "bpb_eot_inclusive": 5.943290652559065,
+        "teacher_kl": 3.076644413849044,
+        "top1": 0.6912568306010929
+      },
+      {
+        "doc_id": 2,
+        "domain": "python",
+        "positions": 8172,
+        "bytes": 6531,
+        "bpb": 1.5336559365517817,
+        "bpb_eot_inclusive": 5.4172715632304875,
+        "teacher_kl": 2.860341763414709,
+        "top1": 0.5688937836514929
+      },
+      {
+        "doc_id": 3,
+        "domain": "python",
+        "positions": 405,
+        "bytes": 328,
+        "bpb": 1.5670812162753687,
+        "bpb_eot_inclusive": 4.997069915953535,
+        "teacher_kl": 2.3644187644675925,
+        "top1": 0.5555555555555556
+      },
+      {
+        "doc_id": 4,
+        "domain": "python",
+        "positions": 3185,
+        "bytes": 2567,
+        "bpb": 1.5269750736886918,
+        "bpb_eot_inclusive": 5.325580214117317,
+        "teacher_kl": 2.86922954277865,
+        "top1": 0.5802197802197803
+      },
+      {
+        "doc_id": 5,
+        "domain": "docs",
+        "positions": 8544,
+        "bytes": 6183,
+        "bpb": 0.8179545654839062,
+        "bpb_eot_inclusive": 7.1604641439889285,
+        "teacher_kl": 3.462468408020248,
+        "top1": 0.6190308988764045
+      },
+      {
+        "doc_id": 6,
+        "domain": "docs",
+        "positions": 90781,
+        "bytes": 71272,
+        "bpb": 1.7000166646919042,
+        "bpb_eot_inclusive": 5.89910652612999,
+        "teacher_kl": 3.0372218537951223,
+        "top1": 0.5426906511274385
+      },
+      {
+        "doc_id": 7,
+        "domain": "docs",
+        "positions": 8702,
+        "bytes": 6725,
+        "bpb": 0.3711873971902317,
+        "bpb_eot_inclusive": 5.6924871050323205,
+        "teacher_kl": 2.972389720933406,
+        "top1": 0.7119053091243392
+      },
+      {
+        "doc_id": 8,
+        "domain": "docs",
+        "positions": 1248,
+        "bytes": 1019,
+        "bpb": 2.2036737586738617,
+        "bpb_eot_inclusive": 5.642674917463976,
+        "teacher_kl": 2.824030558268229,
+        "top1": 0.4599358974358974
+      },
+      {
+        "doc_id": 9,
+        "domain": "docs",
+        "positions": 11266,
+        "bytes": 8817,
+        "bpb": 0.3558129120189074,
+        "bpb_eot_inclusive": 5.362157690520006,
+        "teacher_kl": 2.8573966071171,
+        "top1": 0.7234155867211077
+      },
+      {
+        "doc_id": 10,
+        "domain": "python",
+        "positions": 3484,
+        "bytes": 2791,
+        "bpb": 1.2111785453179211,
+        "bpb_eot_inclusive": 5.180528066831863,
+        "teacher_kl": 2.729570671283008,
+        "top1": 0.6125143513203215
+      },
+      {
+        "doc_id": 11,
+        "domain": "docs",
+        "positions": 56874,
+        "bytes": 45462,
+        "bpb": 2.18276738458909,
+        "bpb_eot_inclusive": 5.930484750790533,
+        "teacher_kl": 2.9965726560851618,
+        "top1": 0.4737841544466716
+      },
+      {
+        "doc_id": 12,
+        "domain": "python",
+        "positions": 1658,
+        "bytes": 1335,
+        "bpb": 1.8383161951927804,
+        "bpb_eot_inclusive": 5.494403183061936,
+        "teacher_kl": 2.7438316943418277,
+        "top1": 0.5271411338962606
+      },
+      {
+        "doc_id": 13,
+        "domain": "docs",
+        "positions": 9617,
+        "bytes": 7416,
+        "bpb": 0.4612069649698797,
+        "bpb_eot_inclusive": 5.851533239552018,
+        "teacher_kl": 3.039927476754218,
+        "top1": 0.6980347301653322
+      },
+      {
+        "doc_id": 14,
+        "domain": "python",
+        "positions": 5241,
+        "bytes": 4133,
+        "bpb": 1.7283600732121092,
+        "bpb_eot_inclusive": 5.816576664899778,
+        "teacher_kl": 2.948682302101221,
+        "top1": 0.5361572219042168
+      },
+      {
+        "doc_id": 15,
+        "domain": "python",
+        "positions": 25430,
+        "bytes": 19575,
+        "bpb": 1.9227288238001814,
+        "bpb_eot_inclusive": 6.491669482506479,
+        "teacher_kl": 3.3047388818570584,
+        "top1": 0.4952025167125442
+      },
+      {
+        "doc_id": 16,
+        "domain": "python",
+        "positions": 1292,
+        "bytes": 1038,
+        "bpb": 1.679241455484307,
+        "bpb_eot_inclusive": 5.416712573083213,
+        "teacher_kl": 2.8368248718072757,
+        "top1": 0.5541795665634675
+      },
+      {
+        "doc_id": 17,
+        "domain": "python",
+        "positions": 5419,
+        "bytes": 4303,
+        "bpb": 1.666168819401853,
+        "bpb_eot_inclusive": 5.704481761161883,
+        "teacher_kl": 2.957205243558544,
+        "top1": 0.5456726333271822
+      },
+      {
+        "doc_id": 18,
+        "domain": "docs",
+        "positions": 9576,
+        "bytes": 7327,
+        "bpb": 0.6598744488262752,
+        "bpb_eot_inclusive": 5.961135449434074,
+        "teacher_kl": 3.0731975201676067,
+        "top1": 0.6735588972431078
+      },
+      {
+        "doc_id": 19,
+        "domain": "docs",
+        "positions": 9126,
+        "bytes": 7054,
+        "bpb": 0.4716645266933927,
+        "bpb_eot_inclusive": 5.7618828518129375,
+        "teacher_kl": 3.0018730824019286,
+        "top1": 0.6963620425158886
+      },
+      {
+        "doc_id": 20,
+        "domain": "docs",
+        "positions": 7390,
+        "bytes": 5386,
+        "bpb": 0.782118258515427,
+        "bpb_eot_inclusive": 6.954967962126226,
+        "teacher_kl": 3.378316182922446,
+        "top1": 0.6257104194857916
+      },
+      {
+        "doc_id": 21,
+        "domain": "docs",
+        "positions": 7898,
+        "bytes": 6071,
+        "bpb": 0.5635156050408345,
+        "bpb_eot_inclusive": 5.864072914044571,
+        "teacher_kl": 3.046126071275956,
+        "top1": 0.6861230691314256
+      },
+      {
+        "doc_id": 22,
+        "domain": "docs",
+        "positions": 26223,
+        "bytes": 18413,
+        "bpb": 0.6698964176104529,
+        "bpb_eot_inclusive": 7.93074319964549,
+        "teacher_kl": 3.736056938327041,
+        "top1": 0.6125538649277352
+      },
+      {
+        "doc_id": 23,
+        "domain": "docs",
+        "positions": 5197,
+        "bytes": 4151,
+        "bpb": 2.660189914919217,
+        "bpb_eot_inclusive": 6.2696268275629174,
+        "teacher_kl": 3.1115090812608237,
+        "top1": 0.4206272849720993
+      },
+      {
+        "doc_id": 24,
+        "domain": "docs",
+        "positions": 2144,
+        "bytes": 1563,
+        "bpb": 2.120160803508101,
+        "bpb_eot_inclusive": 7.988173647209841,
+        "teacher_kl": 3.7823210758949393,
+        "top1": 0.466884328358209
+      },
+      {
+        "doc_id": 25,
+        "domain": "docs",
+        "positions": 45243,
+        "bytes": 33149,
+        "bpb": 0.9012501588527327,
+        "bpb_eot_inclusive": 7.10440925937032,
+        "teacher_kl": 3.5651253359894763,
+        "top1": 0.6224167274495502
+      },
+      {
+        "doc_id": 26,
+        "domain": "python",
+        "positions": 2280,
+        "bytes": 1807,
+        "bpb": 2.1041233687256193,
+        "bpb_eot_inclusive": 6.134126667037904,
+        "teacher_kl": 3.150073670504386,
+        "top1": 0.4982456140350877
+      },
+      {
+        "doc_id": 27,
+        "domain": "docs",
+        "positions": 8416,
+        "bytes": 6424,
+        "bpb": 0.44794912911415224,
+        "bpb_eot_inclusive": 5.861898814825212,
+        "teacher_kl": 3.0471150793503448,
+        "top1": 0.6997385931558935
+      },
+      {
+        "doc_id": 28,
+        "domain": "python",
+        "positions": 17203,
+        "bytes": 13982,
+        "bpb": 1.6206442934597347,
+        "bpb_eot_inclusive": 5.148831743285812,
+        "teacher_kl": 2.8344138456501047,
+        "top1": 0.5841423007614951
+      },
+      {
+        "doc_id": 29,
+        "domain": "docs",
+        "positions": 9251,
+        "bytes": 7199,
+        "bpb": 0.4189714095614515,
+        "bpb_eot_inclusive": 5.534616901765965,
+        "teacher_kl": 2.9046455492987246,
+        "top1": 0.7108420711274457
+      },
+      {
+        "doc_id": 30,
+        "domain": "docs",
+        "positions": 8125,
+        "bytes": 6270,
+        "bpb": 0.5003116423855517,
+        "bpb_eot_inclusive": 5.740552056602235,
+        "teacher_kl": 2.9499257211538463,
+        "top1": 0.6918153846153846
+      },
+      {
+        "doc_id": 31,
+        "domain": "python",
+        "positions": 2147,
+        "bytes": 1712,
+        "bpb": 1.9963289377668199,
+        "bpb_eot_inclusive": 5.671634319134867,
+        "teacher_kl": 3.000518756185957,
+        "top1": 0.5263157894736842
+      },
+      {
+        "doc_id": 32,
+        "domain": "docs",
+        "positions": 5408,
+        "bytes": 4136,
+        "bpb": 0.5944447677552945,
+        "bpb_eot_inclusive": 5.971940460860581,
+        "teacher_kl": 3.0230496197762573,
+        "top1": 0.6695636094674556
+      },
+      {
+        "doc_id": 33,
+        "domain": "docs",
+        "positions": 7924,
+        "bytes": 6051,
+        "bpb": 2.5436175976755173,
+        "bpb_eot_inclusive": 6.70897290549225,
+        "teacher_kl": 3.4337554423271075,
+        "top1": 0.4274356385663806
+      },
+      {
+        "doc_id": 34,
+        "domain": "docs",
+        "positions": 8628,
+        "bytes": 6590,
+        "bpb": 0.512868732616227,
+        "bpb_eot_inclusive": 5.912160417568697,
+        "teacher_kl": 3.0413316382707465,
+        "top1": 0.6922809457579973
+      },
+      {
+        "doc_id": 35,
+        "domain": "docs",
+        "positions": 116094,
+        "bytes": 80181,
+        "bpb": 0.8051962769898606,
+        "bpb_eot_inclusive": 8.329094049570246,
+        "teacher_kl": 3.8390541192979932,
+        "top1": 0.5788585112064362
+      }
+    ]
+  },
+  "generation": {
+    "prompts": 20,
+    "valid_utf8_rate": 1.0,
+    "mean_eot_rate": 0.0,
+    "mean_greedy_byte_accuracy": 0.09975,
+    "mean_greedy_prefix": 2.85,
+    "mean_bytes_per_s": 124.50610943929935,
+    "rows": [
+      {
+        "doc_id": 0,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 115.56181661360365,
+        "greedy_byte_accuracy": 0.07,
+        "greedy_prefix": 1,
+        "sample": "--Identifier: GL:\n                                                                                                                                              "
+      },
+      {
+        "doc_id": 1,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 115.07834033612292,
+        "greedy_byte_accuracy": 0.115,
+        "greedy_prefix": 7,
+        "sample": "d>\n       \n          \n             \n            \n            \n            \n             \n            \n             \n             \n             \n             \n  "
+      },
+      {
+        "doc_id": 2,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 127.36749646416834,
+        "greedy_byte_accuracy": 0.085,
+        "greedy_prefix": 2,
+        "sample": "PTION\n\n\nclass LDAPConsefulChangelRap(LC):\n                                                                                                                      "
+      },
+      {
+        "doc_id": 3,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 119.47813999065666,
+        "greedy_byte_accuracy": 0.1,
+        "greedy_prefix": 0,
+        "sample": "ract ward:\n                                                                                                                                                     "
+      },
+      {
+        "doc_id": 4,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 120.59852672865128,
+        "greedy_byte_accuracy": 0.19,
+        "greedy_prefix": 6,
+        "sample": "mport     Note\n\n\n@def stand:_enter_backed.inclaramework:\n\n                                                                                                      "
+      },
+      {
+        "doc_id": 5,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 120.09185186881903,
+        "greedy_byte_accuracy": 0.02,
+        "greedy_prefix": 0,
+        "sample": "> hisdowing here toods elss \" ENDSIS TORATIONS togics\nWithout ESTUCT ///////////////////////////////////////////////\n/////////////////////////\n/////////////////"
+      },
+      {
+        "doc_id": 6,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 128.83886019355145,
+        "greedy_byte_accuracy": 0.035,
+        "greedy_prefix": 0,
+        "sample": " 5=\"H\">\n<pref mesc=\"\"http://www.w.w3.org/them.html#andoptions.class/escope.html\">\n1/*                                                                           "
+      },
+      {
+        "doc_id": 7,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 129.5803479724725,
+        "greedy_byte_accuracy": 0.075,
+        "greedy_prefix": 12,
+        "sample": "-Identifier: Apper: AppSParing\n\nSlating toration aling ->\n</body>\n\n</head>\n\n<!DT>\n\nSynno---- \n</html></head><>\n<html>\n\n<head>\n\n\n<body ing center>\n<b></b>\n<h2 il"
+      },
+      {
+        "doc_id": 8,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 112.5678958105851,
+        "greedy_byte_accuracy": 0.17,
+        "greedy_prefix": 1,
+        "sample": "                                                                                                                                              contitle(Param, se"
+      },
+      {
+        "doc_id": 9,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 128.62913180402316,
+        "greedy_byte_accuracy": 0.07,
+        "greedy_prefix": 1,
+        "sample": "--Identifier: GL: background-ing\n\n                                                                                                                              "
+      },
+      {
+        "doc_id": 10,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 129.30662115058212,
+        "greedy_byte_accuracy": 0.21,
+        "greedy_prefix": 2,
+        "sample": "K_ING:\n\n\n                                                                                                   rate tra_e.add(),\n                                  "
+      },
+      {
+        "doc_id": 11,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 129.8510551645876,
+        "greedy_byte_accuracy": 0.105,
+        "greedy_prefix": 1,
+        "sample": " -                                                                                                                                                    A         "
+      },
+      {
+        "doc_id": 12,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 129.20339588698448,
+        "greedy_byte_accuracy": 0.11,
+        "greedy_prefix": 0,
+        "sample": "te_enty_ing\n\n###                                                                                                                                                "
+      },
+      {
+        "doc_id": 13,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 126.43230958417968,
+        "greedy_byte_accuracy": 0.07,
+        "greedy_prefix": 1,
+        "sample": "--Identifier: GL: GPL-->\n<</script>\n\n</strituty>\n</strite></script>\n\n<!./s\n\n</script>\n\n</strong>\n\n<strong>\n</strong>\n</strong>\n       \n       \n     \n      \n    "
+      },
+      {
+        "doc_id": 14,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 125.12371628090894,
+        "greedy_byte_accuracy": 0.065,
+        "greedy_prefix": 0,
+        "sample": "                                                                                                                                                                "
+      },
+      {
+        "doc_id": 15,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 130.68099836909846,
+        "greedy_byte_accuracy": 0.09,
+        "greedy_prefix": 4,
+        "sample": "ort def\n\n\ndef stend_line_grant_method_patched_table_for_:\n\n                                                                                                     "
+      },
+      {
+        "doc_id": 16,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 130.5958353409872,
+        "greedy_byte_accuracy": 0.135,
+        "greedy_prefix": 0,
+        "sample": "DAS_COPTIONS\n\n\n                                                                                                                                              As "
+      },
+      {
+        "doc_id": 17,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 126.3252117390203,
+        "greedy_byte_accuracy": 0.09,
+        "greedy_prefix": 0,
+        "sample": "nstall_classmethod\n\nClass Structurecture__class_GetCaseMethod(Class, ClassocStructuresEname):\n                                                                  "
+      },
+      {
+        "doc_id": 18,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 123.69460264366991,
+        "greedy_byte_accuracy": 0.115,
+        "greedy_prefix": 7,
+        "sample": "d id=\"plot GLibP.\" />\n\n        \n         \n            \n            \n             \n             \n             \n             \n             \n             \n        "
+      },
+      {
+        "doc_id": 19,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 121.11603484331424,
+        "greedy_byte_accuracy": 0.075,
+        "greedy_prefix": 12,
+        "sample": "Identifier: GoD: API -Content:\n\n</divGColor.</python.h>\n\n  \n\n      \n      \n      \n       \n      \n      \n\n       \n     \n       \n       \n\n          \n\n            "
+      }
+    ]
+  }
+}

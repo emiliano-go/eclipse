@@ -1,0 +1,601 @@
+{
+  "checkpoint": "/data/ornith-byte/runs/1m/ce/final.pt",
+  "documents": {
+    "overall": {
+      "positions": 557056,
+      "bytes": 420313,
+      "bpb": 1.4828955993569957,
+      "bpb_eot_inclusive": 1.6148622082942794,
+      "teacher_kl": 0.8257518854156575,
+      "top1": 0.7871057846966911
+    },
+    "per_domain": {
+      "docs": {
+        "bytes": 360211,
+        "bpb": 1.3887997299610109,
+        "bpb_eot_inclusive": 1.5145545914084146,
+        "teacher_kl": 0.7856818351106571,
+        "top1": 0.8025418797023736
+      },
+      "python": {
+        "bytes": 60102,
+        "bpb": 2.0468430089439815,
+        "bpb_eot_inclusive": 2.216038658097516,
+        "teacher_kl": 1.0797076260203764,
+        "top1": 0.6892749881447916
+      }
+    },
+    "per_doc": [
+      {
+        "doc_id": 0,
+        "domain": "docs",
+        "positions": 8315,
+        "bytes": 6380,
+        "bpb": 0.8178926924704624,
+        "bpb_eot_inclusive": 0.9554428995979908,
+        "teacher_kl": 0.9457871391768923,
+        "top1": 0.8889957907396272
+      },
+      {
+        "doc_id": 1,
+        "domain": "docs",
+        "positions": 9150,
+        "bytes": 6972,
+        "bpb": 0.5191280154068858,
+        "bpb_eot_inclusive": 0.5903800641572902,
+        "teacher_kl": 0.6067991296320013,
+        "top1": 0.9268852459016393
+      },
+      {
+        "doc_id": 2,
+        "domain": "python",
+        "positions": 8172,
+        "bytes": 6531,
+        "bpb": 1.9343944380530398,
+        "bpb_eot_inclusive": 2.082051441445335,
+        "teacher_kl": 1.027838155678307,
+        "top1": 0.7032550171316692
+      },
+      {
+        "doc_id": 3,
+        "domain": "python",
+        "positions": 405,
+        "bytes": 328,
+        "bpb": 1.8136891024665895,
+        "bpb_eot_inclusive": 1.9312280193173263,
+        "teacher_kl": 0.7208873607494213,
+        "top1": 0.6814814814814815
+      },
+      {
+        "doc_id": 4,
+        "domain": "python",
+        "positions": 3185,
+        "bytes": 2567,
+        "bpb": 2.012428869415423,
+        "bpb_eot_inclusive": 2.1000542934642987,
+        "teacher_kl": 1.0566016084919545,
+        "top1": 0.7111459968602826
+      },
+      {
+        "doc_id": 5,
+        "domain": "docs",
+        "positions": 8544,
+        "bytes": 6183,
+        "bpb": 1.0097778318930433,
+        "bpb_eot_inclusive": 1.0993470996358397,
+        "teacher_kl": 0.526700409164143,
+        "top1": 0.8735955056179775
+      },
+      {
+        "doc_id": 6,
+        "domain": "docs",
+        "positions": 90781,
+        "bytes": 71272,
+        "bpb": 2.1480127642529747,
+        "bpb_eot_inclusive": 2.3614935610894734,
+        "teacher_kl": 1.119984818374715,
+        "top1": 0.6965334155825558
+      },
+      {
+        "doc_id": 7,
+        "domain": "docs",
+        "positions": 8702,
+        "bytes": 6725,
+        "bpb": 0.2540823893896306,
+        "bpb_eot_inclusive": 0.26866159495244996,
+        "teacher_kl": 0.6588973069678666,
+        "top1": 0.9621925994024362
+      },
+      {
+        "doc_id": 8,
+        "domain": "docs",
+        "positions": 1248,
+        "bytes": 1019,
+        "bpb": 2.468852910826496,
+        "bpb_eot_inclusive": 2.6314169586501723,
+        "teacher_kl": 1.1085834014110076,
+        "top1": 0.6017628205128205
+      },
+      {
+        "doc_id": 9,
+        "domain": "docs",
+        "positions": 11266,
+        "bytes": 8817,
+        "bpb": 0.2629024319172598,
+        "bpb_eot_inclusive": 0.30457126508099236,
+        "teacher_kl": 0.5672584126013835,
+        "top1": 0.9575714539321853
+      },
+      {
+        "doc_id": 10,
+        "domain": "python",
+        "positions": 3484,
+        "bytes": 2791,
+        "bpb": 1.4710537734880054,
+        "bpb_eot_inclusive": 1.5970245218936228,
+        "teacher_kl": 0.7373244485953645,
+        "top1": 0.7680826636050516
+      },
+      {
+        "doc_id": 11,
+        "domain": "docs",
+        "positions": 56874,
+        "bytes": 45462,
+        "bpb": 2.4443686050797315,
+        "bpb_eot_inclusive": 2.688766586295804,
+        "teacher_kl": 1.2073105088592218,
+        "top1": 0.6051798712944404
+      },
+      {
+        "doc_id": 12,
+        "domain": "python",
+        "positions": 1658,
+        "bytes": 1335,
+        "bpb": 2.0645377724124647,
+        "bpb_eot_inclusive": 2.220422867766667,
+        "teacher_kl": 0.9252919379994723,
+        "top1": 0.6700844390832328
+      },
+      {
+        "doc_id": 13,
+        "domain": "docs",
+        "positions": 9617,
+        "bytes": 7416,
+        "bpb": 0.4551322796746659,
+        "bpb_eot_inclusive": 0.4898765057532027,
+        "teacher_kl": 0.7122396631945911,
+        "top1": 0.9338671103254653
+      },
+      {
+        "doc_id": 14,
+        "domain": "python",
+        "positions": 5241,
+        "bytes": 4133,
+        "bpb": 1.990747874842606,
+        "bpb_eot_inclusive": 2.2019652350269863,
+        "teacher_kl": 0.9893957908497901,
+        "top1": 0.6828849456210647
+      },
+      {
+        "doc_id": 15,
+        "domain": "python",
+        "positions": 25430,
+        "bytes": 19575,
+        "bpb": 2.217312061179128,
+        "bpb_eot_inclusive": 2.4165060391128312,
+        "teacher_kl": 1.1376427305808838,
+        "top1": 0.6642548171451043
+      },
+      {
+        "doc_id": 16,
+        "domain": "python",
+        "positions": 1292,
+        "bytes": 1038,
+        "bpb": 1.9609185777801166,
+        "bpb_eot_inclusive": 2.121921474470006,
+        "teacher_kl": 1.0417663763182081,
+        "top1": 0.695046439628483
+      },
+      {
+        "doc_id": 17,
+        "domain": "python",
+        "positions": 5419,
+        "bytes": 4303,
+        "bpb": 1.9043339895254574,
+        "bpb_eot_inclusive": 2.045299759952903,
+        "teacher_kl": 0.956310744566283,
+        "top1": 0.7025281417235653
+      },
+      {
+        "doc_id": 18,
+        "domain": "docs",
+        "positions": 9576,
+        "bytes": 7327,
+        "bpb": 0.8031680902204636,
+        "bpb_eot_inclusive": 0.8673794332234083,
+        "teacher_kl": 0.7313922318002036,
+        "top1": 0.8992272347535506
+      },
+      {
+        "doc_id": 19,
+        "domain": "docs",
+        "positions": 9126,
+        "bytes": 7054,
+        "bpb": 0.35755759647757784,
+        "bpb_eot_inclusive": 0.38168166250094815,
+        "teacher_kl": 0.6965850488987508,
+        "top1": 0.9459785229015998
+      },
+      {
+        "doc_id": 20,
+        "domain": "docs",
+        "positions": 7390,
+        "bytes": 5386,
+        "bpb": 0.9692698277201003,
+        "bpb_eot_inclusive": 1.0548605054206988,
+        "teacher_kl": 0.5100869804661071,
+        "top1": 0.875913396481732
+      },
+      {
+        "doc_id": 21,
+        "domain": "docs",
+        "positions": 7898,
+        "bytes": 6071,
+        "bpb": 0.466919663578532,
+        "bpb_eot_inclusive": 0.5238164826607707,
+        "teacher_kl": 0.7541586749612244,
+        "top1": 0.9282096733350216
+      },
+      {
+        "doc_id": 22,
+        "domain": "docs",
+        "positions": 26223,
+        "bytes": 18413,
+        "bpb": 0.956876351426952,
+        "bpb_eot_inclusive": 1.038134108458425,
+        "teacher_kl": 0.4643992358658191,
+        "top1": 0.8715249971399154
+      },
+      {
+        "doc_id": 23,
+        "domain": "docs",
+        "positions": 5197,
+        "bytes": 4151,
+        "bpb": 3.1263352078706967,
+        "bpb_eot_inclusive": 3.3437226521023233,
+        "teacher_kl": 1.5080255064708306,
+        "top1": 0.5412738118145084
+      },
+      {
+        "doc_id": 24,
+        "domain": "docs",
+        "positions": 2144,
+        "bytes": 1563,
+        "bpb": 2.7814246499037445,
+        "bpb_eot_inclusive": 3.1207371288116392,
+        "teacher_kl": 1.39545360963736,
+        "top1": 0.6711753731343284
+      },
+      {
+        "doc_id": 25,
+        "domain": "docs",
+        "positions": 45243,
+        "bytes": 33149,
+        "bpb": 1.2437824737170704,
+        "bpb_eot_inclusive": 1.4010624349763408,
+        "teacher_kl": 0.6877990139865818,
+        "top1": 0.8398647304555401
+      },
+      {
+        "doc_id": 26,
+        "domain": "python",
+        "positions": 2280,
+        "bytes": 1807,
+        "bpb": 2.4435492878404124,
+        "bpb_eot_inclusive": 2.6351360741367387,
+        "teacher_kl": 1.2233870656866777,
+        "top1": 0.6364035087719299
+      },
+      {
+        "doc_id": 27,
+        "domain": "docs",
+        "positions": 8416,
+        "bytes": 6424,
+        "bpb": 0.3994502648738183,
+        "bpb_eot_inclusive": 0.42783041613898737,
+        "teacher_kl": 0.5634383285000297,
+        "top1": 0.9451045627376425
+      },
+      {
+        "doc_id": 28,
+        "domain": "python",
+        "positions": 17203,
+        "bytes": 13982,
+        "bpb": 1.949545485077152,
+        "bpb_eot_inclusive": 2.1056125403423533,
+        "teacher_kl": 1.1258422659973915,
+        "top1": 0.7121432308318316
+      },
+      {
+        "doc_id": 29,
+        "domain": "docs",
+        "positions": 9251,
+        "bytes": 7199,
+        "bpb": 0.3532478877330739,
+        "bpb_eot_inclusive": 0.3629291810316336,
+        "teacher_kl": 0.7308252359542212,
+        "top1": 0.9470327532158686
+      },
+      {
+        "doc_id": 30,
+        "domain": "docs",
+        "positions": 8125,
+        "bytes": 6270,
+        "bpb": 0.2778812818147721,
+        "bpb_eot_inclusive": 0.30018816180363467,
+        "teacher_kl": 0.7165877253605769,
+        "top1": 0.9540923076923077
+      },
+      {
+        "doc_id": 31,
+        "domain": "python",
+        "positions": 2147,
+        "bytes": 1712,
+        "bpb": 2.46945021425619,
+        "bpb_eot_inclusive": 2.6489267053479058,
+        "teacher_kl": 1.4002364877772764,
+        "top1": 0.63996273870517
+      },
+      {
+        "doc_id": 32,
+        "domain": "docs",
+        "positions": 5408,
+        "bytes": 4136,
+        "bpb": 0.39533204998534593,
+        "bpb_eot_inclusive": 0.42094337369680473,
+        "teacher_kl": 0.915069580078125,
+        "top1": 0.9447115384615384
+      },
+      {
+        "doc_id": 33,
+        "domain": "docs",
+        "positions": 7924,
+        "bytes": 6051,
+        "bpb": 3.2584508730162085,
+        "bpb_eot_inclusive": 3.480638003089006,
+        "teacher_kl": 1.7279928670514417,
+        "top1": 0.5557799091367996
+      },
+      {
+        "doc_id": 34,
+        "domain": "docs",
+        "positions": 8628,
+        "bytes": 6590,
+        "bpb": 0.5100310195033311,
+        "bpb_eot_inclusive": 0.5539755487628064,
+        "teacher_kl": 0.5630155306034857,
+        "top1": 0.9343996291145109
+      },
+      {
+        "doc_id": 35,
+        "domain": "docs",
+        "positions": 116094,
+        "bytes": 80181,
+        "bpb": 1.0830820932857959,
+        "bpb_eot_inclusive": 1.1383801627962986,
+        "teacher_kl": 0.4425295452341556,
+        "top1": 0.844660361431254
+      }
+    ]
+  },
+  "generation": {
+    "prompts": 20,
+    "valid_utf8_rate": 1.0,
+    "mean_eot_rate": 0.1835,
+    "mean_greedy_byte_accuracy": 0.15050737798929045,
+    "mean_greedy_prefix": 14.2,
+    "mean_bytes_per_s": 106.09771888351153,
+    "rows": [
+      {
+        "doc_id": 0,
+        "valid_utf8": true,
+        "eot_rate": 0.23,
+        "generated_bytes": 154,
+        "bytes_per_s": 90.92204079903279,
+        "greedy_byte_accuracy": 0.609271523178808,
+        "greedy_prefix": 86,
+        "sample": "-License-Identifier: LGPL-2.1-or-later\n-->\n\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <title>Gio.InputStream.set_interfaces</title>\n  <meta name=\"viewport"
+      },
+      {
+        "doc_id": 1,
+        "valid_utf8": true,
+        "eot_rate": 0.2,
+        "generated_bytes": 160,
+        "bytes_per_s": 103.3327158825735,
+        "greedy_byte_accuracy": 0.10126582278481013,
+        "greedy_prefix": 5,
+        "sample": "d>\n  \n    <meta http=\"off\" current=\"Generator.DebugController.debug-enabled.html\">developers</a>\n  \n    <a href=\"property.Dependencies.get_exit6_type.html\">get_"
+      },
+      {
+        "doc_id": 2,
+        "valid_utf8": true,
+        "eot_rate": 0.185,
+        "generated_bytes": 163,
+        "bytes_per_s": 101.09820434901552,
+        "greedy_byte_accuracy": 0.03125,
+        "greedy_prefix": 0,
+        "sample": "PTS | RESULT_COMMOT_VISQUECALL_HOME = RESULT_PATH_POCKET_CORING import RESULT_VERSION_CAPP2 |= LANG_PROPLATION_LIMITED_GET | REHAVENDABLE_RELEEDENTIES | LDAPAdd"
+      },
+      {
+        "doc_id": 3,
+        "valid_utf8": true,
+        "eot_rate": 0.175,
+        "generated_bytes": 165,
+        "bytes_per_s": 104.14098379996075,
+        "greedy_byte_accuracy": 0.08284023668639054,
+        "greedy_prefix": 0,
+        "sample": "er pav arrays API format specifies each options.\n        \"\"\"\n        if key: HttpLOS O_HTDR_NONE_MARKARGS:\n            listen_sock.license_backend(\n            "
+      },
+      {
+        "doc_id": 4,
+        "valid_utf8": true,
+        "eot_rate": 0.175,
+        "generated_bytes": 165,
+        "bytes_per_s": 105.28584218689502,
+        "greedy_byte_accuracy": 0.0718562874251497,
+        "greedy_prefix": 6,
+        "sample": "mport from subset import Parameters\nfrom .. import PMDINIS import HttpConnection\nfrom ..handles import MAXIM\nfrom .._header import HttpCompose\n\nfrom .hatch.coun"
+      },
+      {
+        "doc_id": 5,
+        "valid_utf8": true,
+        "eot_rate": 0.215,
+        "generated_bytes": 157,
+        "bytes_per_s": 100.94170479475825,
+        "greedy_byte_accuracy": 0.025974025974025976,
+        "greedy_prefix": 0,
+        "sample": "\nCopyright_ >fuseModule, MSSG MEMESS OF GUPL 1016 Or not Specify\nThis License in the files is part of the Properties.\nYou may not it to get the time that is "
+      },
+      {
+        "doc_id": 6,
+        "valid_utf8": true,
+        "eot_rate": 0.21,
+        "generated_bytes": 158,
+        "bytes_per_s": 99.58287475173782,
+        "greedy_byte_accuracy": 0.02097902097902098,
+        "greedy_prefix": 0,
+        "sample": "naml=Collector.org\" calle=\"Content\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\"/>\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE"
+      },
+      {
+        "doc_id": 7,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 132.15288672003862,
+        "greedy_byte_accuracy": 0.035,
+        "greedy_prefix": 0,
+        "sample": "----------------------------------------------------------------------------------------------------------------------------------------------------------------"
+      },
+      {
+        "doc_id": 8,
+        "valid_utf8": true,
+        "eot_rate": 0.18,
+        "generated_bytes": 164,
+        "bytes_per_s": 107.60200892081983,
+        "greedy_byte_accuracy": 0.09696969696969697,
+        "greedy_prefix": 1,
+        "sample": "\n    def __init__(self, data):\n        return data()\n    return _data_lines_string(\n            project_license:\n                self.context.options.strip()\n  "
+      },
+      {
+        "doc_id": 9,
+        "valid_utf8": true,
+        "eot_rate": 0.245,
+        "generated_bytes": 151,
+        "bytes_per_s": 100.51147707489244,
+        "greedy_byte_accuracy": 0.609271523178808,
+        "greedy_prefix": 86,
+        "sample": "-Identifier: LGPL-2.1-or-later\n-->\n\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <title>Gio.DBusObject.get_interfaces</title>\n  <meta name=\"viewport\" cont"
+      },
+      {
+        "doc_id": 10,
+        "valid_utf8": true,
+        "eot_rate": 0.24,
+        "generated_bytes": 152,
+        "bytes_per_s": 103.92800840769154,
+        "greedy_byte_accuracy": 0.0872093023255814,
+        "greedy_prefix": 1,
+        "sample": "K_IN_PROJECT | RESULT_CONSTRAINTS | RECURCONTRAINTS | MERT_INSTRAINTS | REING_BUSTHING_TWAIN_MBU) | RELEV_DIR | !CUCcall_QUONE_BASINTALL_VARAIDARy | REV"
+      },
+      {
+        "doc_id": 11,
+        "valid_utf8": true,
+        "eot_rate": 0.27,
+        "generated_bytes": 146,
+        "bytes_per_s": 97.32801169776535,
+        "greedy_byte_accuracy": 0.10106382978723404,
+        "greedy_prefix": 0,
+        "sample": " has not be errors of 0.4.0.2.0 on 30.6.1\n- *GCOPE_CONSEMENTS : mpl\u00b6mtype:type[config]: str | None\n    import VICHECK\n\n## The execution behavior "
+      },
+      {
+        "doc_id": 12,
+        "valid_utf8": true,
+        "eot_rate": 0.195,
+        "generated_bytes": 161,
+        "bytes_per_s": 108.32311549832859,
+        "greedy_byte_accuracy": 0.049689440993788817,
+        "greedy_prefix": 0,
+        "sample": "t-is=cmd-8\"><a class=\"reference internal\" href=\"../manual/cmake-per.html\">Cmake Cmake Cmake CP char code documentation</code></a> code code is conversions and c"
+      },
+      {
+        "doc_id": 13,
+        "valid_utf8": true,
+        "eot_rate": 0.225,
+        "generated_bytes": 155,
+        "bytes_per_s": 102.6146587201459,
+        "greedy_byte_accuracy": 0.5960264900662252,
+        "greedy_prefix": 89,
+        "sample": "-Index -->\n\n<!DOCTYPE html>\n\n<html lang=\"en\">\n<head>\n  <title>AppStream.Review.inset_base_string</title>\n  <meta name=\"viewport\" content=\"width=device-widt"
+      },
+      {
+        "doc_id": 14,
+        "valid_utf8": true,
+        "eot_rate": 0.2,
+        "generated_bytes": 160,
+        "bytes_per_s": 100.9836768130571,
+        "greedy_byte_accuracy": 0.043478260869565216,
+        "greedy_prefix": 0,
+        "sample": "    hash_bundles = as_async(\n        axis_strings = _axis_method_wrapper(\"axis\", \"axis_per\", \"axes_axes\"):\n        \"\"\"\n        Path axis being axes.\n        \"\"\""
+      },
+      {
+        "doc_id": 15,
+        "valid_utf8": true,
+        "eot_rate": 0.185,
+        "generated_bytes": 163,
+        "bytes_per_s": 109.65685327713126,
+        "greedy_byte_accuracy": 0.16766467065868262,
+        "greedy_prefix": 4,
+        "sample": "ate character parent in the openend handle PyPy user code from any\nclass were simply as a congent and permitmproxy, or general format\nimport axes\nimport importe"
+      },
+      {
+        "doc_id": 16,
+        "valid_utf8": true,
+        "eot_rate": 0.155,
+        "generated_bytes": 169,
+        "bytes_per_s": 118.52813741047734,
+        "greedy_byte_accuracy": 0.11242603550295859,
+        "greedy_prefix": 1,
+        "sample": "ist      (\"Input stepsize and profile were containing attempty sometimes derivation as containing which nodes notation (e.e., ABVisit) is not distribute it\ncomp"
+      },
+      {
+        "doc_id": 17,
+        "valid_utf8": true,
+        "eot_rate": 0.165,
+        "generated_bytes": 167,
+        "bytes_per_s": 98.55306594913473,
+        "greedy_byte_accuracy": 0.03164556962025317,
+        "greedy_prefix": 0,
+        "sample": "lities the from a make coordinates the following from any string including by makes between containing they compilied.\n\n* Fixed Other Information :the:/werk.org"
+      },
+      {
+        "doc_id": 18,
+        "valid_utf8": true,
+        "eot_rate": 0.22,
+        "generated_bytes": 156,
+        "bytes_per_s": 100.59111800394302,
+        "greedy_byte_accuracy": 0.10126582278481013,
+        "greedy_prefix": 5,
+        "sample": "d>\n  \n    <a class=\"property\" href=\"property.DtlsConnection.next_protocol->\n    <a href=\"struct.DtlsConnection.new_stream.html\">new_stream</a>\n  \n    <a cla"
+      },
+      {
+        "doc_id": 19,
+        "valid_utf8": true,
+        "eot_rate": 0.0,
+        "generated_bytes": 200,
+        "bytes_per_s": 135.87699261283143,
+        "greedy_byte_accuracy": 0.035,
+        "greedy_prefix": 0,
+        "sample": "----------------------------------------------------------------------------------------------------------------------------------------------------------------"
+      }
+    ]
+  }
+}

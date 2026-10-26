@@ -85,7 +85,21 @@ boundaries. MI still wins content-only BPB because it has no EOT mass.
 The corrected 1M overfit test reaches BPB 0.342 / KL 0.0156. See
 `reports/phase5-6.md`.
 
-Next: full 6.59M-token extraction (~4.25 h, ~13.8 GB) or the
-token-student control.
+### Held-out documents (36 docs, 420,313 bytes scored)
+
+| objective | BPB | EOT-incl BPB | teacher KL | top-1 | greedy prefix |
+|---|---:|---:|---:|---:|---:|
+| EOT | 1.362 | **1.473** | **0.617** | **0.790** | 2.5 |
+| MI | **1.228** | 6.562 | 3.287 | 0.583 | 2.9 |
+| byte CE | 1.483 | 1.615 | 0.826 | 0.787 | **14.2** |
+
+The old window-level 0.860 EOT BPB was in-document and optimistic. On
+truly held-out documents the ordering MI < EOT < CE on content BPB
+survives, EOT beats CE on BPB/KL, and CE generates better exact
+continuations. MI still has no EOT mass. See `reports/phase7-heldout.md`.
+
+Next: the 1M mixed-loss sweep (EOT+CE, MI+CE, three-way, T=2,
+two-stage), then full-data training with the winner. The full train
+extraction is running detached (`bgj-eq46ahcx`).
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.
