@@ -11,16 +11,24 @@ teacher:
   measured_tokens_per_second: 890   # Q5_K_M, ctx 4096, batch 128; batch 64 is the safe default
   measured_peak_vram_mib: 7687
 
-note: "Ornith is instruction-tuned and enters thinking mode on raw text; decide chat framing before Phase 1."
+note: "Decision: raw text/code without chat framing; thinking-mode framing is a known limitation."
 
 corpus:
   target_content_bytes: 20000000
   val_fraction: 0.02
   near_dup_jaccard: 0.9
+  framing: raw_text        # decision: no chat template or control symbols
+  max_file_bytes: 2000000
   sources:
-    - wikimedia/wikipedia:20231101.en
-    - bigcode/the-stack-smol
-    - tldr-pages/tldr
+    - /usr/lib/python3.14
+    - /usr/share/doc
+    - /usr/share/licenses
+  stats:
+    docs: 1091
+    train_bytes: 19595917
+    val_bytes: 420740
+    train_tokens: 6592718
+    val_tokens: 136916
 
 extraction:
   stages: [100000, 1000000, 5000000]   # teacher tokens

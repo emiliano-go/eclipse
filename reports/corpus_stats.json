@@ -1,0 +1,14 @@
+{
+  "docs": 1091,
+  "train_docs": 1055,
+  "val_docs": 36,
+  "bytes": 20014479,
+  "rejected": {
+    "exact": 8,
+    "near": 11,
+    "decode": 0,
+    "short": 38
+  },
+  "train_bytes": 19595917,
+  "val_bytes": 420740
+}

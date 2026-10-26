@@ -40,14 +40,19 @@ def normalize(text: str) -> str:
     return SPECIAL_RE.sub("", text).strip()
 
 
-def iter_files(roots: list[Path]):
+def iter_files(roots: list[Path], max_file_bytes: int = 2_000_000):
     for root in roots:
         if root.is_file():
-            yield root
+            if root.stat().st_size <= max_file_bytes:
+                yield root
             continue
         for path in root.rglob("*"):
-            if path.is_file() and path.suffix.lower() in TEXT_SUFFIXES:
-                yield path
+            try:
+                if (path.is_file() and path.suffix.lower() in TEXT_SUFFIXES
+                        and path.stat().st_size <= max_file_bytes):
+                    yield path
+            except OSError:
+                continue
 
 
 def make_shingles(text: str, n: int = 8, cap: int = 512) -> frozenset[int]:
@@ -95,14 +100,18 @@ class NearDupIndex:
             self.buckets.setdefault(key, []).append(idx)
 
 
-def build(roots: list[Path], target_bytes: int, val_fraction: float, seed: int = 1337) -> tuple[list[Doc], list[Doc], dict]:
+def build(roots: list[Path], target_bytes: int, val_fraction: float, seed: int = 1337,
+          max_file_bytes: int = 2_000_000) -> tuple[list[Doc], list[Doc], dict]:
     docs: list[Doc] = []
     seen: set[str] = set()
     index = NearDupIndex()
     rejected = {"exact": 0, "near": 0, "decode": 0, "short": 0}
     total = 0
 
-    for path in iter_files(roots):
+    paths = list(iter_files(roots, max_file_bytes))
+    paths.sort(key=lambda p: hashlib.sha256(str(p).encode("utf-8")).digest())
+
+    for path in paths:
         try:
             raw = path.read_text(encoding="utf-8")
         except (UnicodeDecodeError, OSError):
@@ -132,8 +141,18 @@ def build(roots: list[Path], target_bytes: int, val_fraction: float, seed: int =
     rng = np.random.default_rng(seed)
     order = rng.permutation(len(docs))
     docs = [docs[i] for i in order]
-    n_val = max(1, int(len(docs) * val_fraction))
-    val, train = docs[:n_val], docs[n_val:]
+    # Target a fraction of bytes, not documents: sizes vary by orders of
+    # magnitude across code and documentation. The 10% cap prevents one
+    # large document from swallowing the validation set.
+    total_bytes = sum(len(d.text.encode("utf-8")) for d in docs)
+    target_val = min(int(total_bytes * val_fraction), int(total_bytes * 0.10))
+    val, train, val_bytes = [], [], 0
+    for doc in docs:
+        if val_bytes < target_val:
+            val.append(doc)
+            val_bytes += len(doc.text.encode("utf-8"))
+        else:
+            train.append(doc)
 
     stats = {
         "docs": len(docs),
@@ -158,12 +177,13 @@ def main() -> None:
     ap.add_argument("--target-bytes", type=int, default=20_000_000)
     ap.add_argument("--val-fraction", type=float, default=0.02)
     ap.add_argument("--seed", type=int, default=1337)
+    ap.add_argument("--max-file-bytes", type=int, default=2_000_000)
     args = ap.parse_args()
 
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     roots = [Path(s) for s in args.source]
-    train, val, stats = build(roots, args.target_bytes, args.val_fraction, args.seed)
+    train, val, stats = build(roots, args.target_bytes, args.val_fraction, args.seed, args.max_file_bytes)
 
     stats["train_bytes"] = write_stream(out / "train.txt", train)
     stats["val_bytes"] = write_stream(out / "val.txt", val)

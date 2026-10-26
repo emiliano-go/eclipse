@@ -46,8 +46,12 @@ exact; the logits dumper is deterministic. Ornith Q5_K_M produced 32,768
 teacher tokens at 890 tokens/s with peak 7,687 MiB VRAM at ctx 4096. Real
 logits convert to EOT targets with unit row sums.
 
-Ornith behaves as an instruction-tuned thinking model on raw text, so the
-Phase 1 corpus needs an explicit decision about chat framing. See
-`reports/phase0.md`. Next: Phase 1 corpus and Phase 2 conversion hardening.
+Phase 1 is complete: a 20.0 MB NFC-normalized code/documentation corpus with
+no train/validation overlap, 6,592,718 train tokens and 136,916 validation
+tokens. The project decision is raw text without chat framing; the known
+consequence is that samples may inherit the teacher's thinking-mode framing.
+See `reports/phase0.md` and `reports/phase1.md`.
+
+Next: staged teacher extraction into 260-symbol EOT target shards.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.
