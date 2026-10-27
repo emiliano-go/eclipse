@@ -98,8 +98,28 @@ truly held-out documents the ordering MI < EOT < CE on content BPB
 survives, EOT beats CE on BPB/KL, and CE generates better exact
 continuations. MI still has no EOT mass. See `reports/phase7-heldout.md`.
 
-Next: the 1M mixed-loss sweep (EOT+CE, MI+CE, three-way, T=2,
-two-stage), then full-data training with the winner. The full train
-extraction is running detached (`bgj-eq46ahcx`).
+### Full-data training (EOT + 10% CE)
+
+The 1M sweep selected `0.9 * EOT KL + 0.1 * byte CE`. Training on the full
+26.2M-position set for 10,000 steps (~3.1 epochs) produced:
+
+| metric | 1M, 2k steps | full, 10k steps |
+|---|---:|---:|
+| BPB | 1.276 | **0.818** |
+| EOT-inclusive BPB | 1.378 | **0.879** |
+| teacher KL | 0.575 | **0.317** |
+| top-1 | 0.801 | **0.865** |
+| valid UTF-8 | 0.90 | **1.00** |
+| greedy prefix | 6.35 | **7.3** |
+
+Documentation reaches BPB 0.764 / KL 0.284; Python 1.143 / 0.525. The
+validation curve is flat after ~8k steps. Generation is still weak (7.3-byte
+greedy match), so this proves the rig rather than a usable model. No
+gpu-unlock was used; the deferred speed protocol is in
+`reports/plan-training-efficiency.md`. See `reports/phase7-full.md`.
+
+Next: optional second seed or token-student control, or the 24 GB GPU path
+(100-300M student, on-the-fly targets) recorded in
+`reports/plan-training-efficiency.md`.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.
