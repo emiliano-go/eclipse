@@ -11,22 +11,30 @@ model:
   qk_norm: true
   tie_embeddings: true
 
+# Reference for the completed full-data run. train.py currently takes CLI
+# flags; scripts/train_full.sh is the exact reproducible command.
 train:
-  objective: eot            # eot | mi | ce
-  alpha: 1.0                # weight on KL; 1.0 = pure distillation
+  objective: mix
+  alpha_kl: 0.9
+  alpha_mi: 0.0
+  alpha_ce: 0.1
+  temperature: 1.0
+  steps: 10000
   lr: 3.0e-4
   weight_decay: 0.1
   betas: [0.9, 0.95]
   warmup_fraction: 0.05
   min_lr_fraction: 0.1
   grad_clip: 1.0
-  micro_batch: 16
+  micro_batch: 8
   grad_accum: 1
-  epochs: 12
+  epochs: 12               # ignored when steps > 0
   seq_len: 1024
   val_fraction: 0.1
+  val_targets: /data/ornith-byte/targets/val-full
   amp: true
   grad_checkpointing: false
   seed: 1337
-  eval_every_steps: 200
+  eval_every_steps: 1000
+  save_every_steps: 2000
   log_every_steps: 20

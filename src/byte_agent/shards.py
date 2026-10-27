@@ -196,9 +196,11 @@ class TargetDataset:
     def __getitem__(self, idx: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         si, start = self.windows[idx]
         symbols, targets, nexts, docs = self._maps(si)
+        t = np.asarray(targets[start : start + self.seq_len], dtype=np.float32)
+        t /= np.maximum(t.sum(axis=-1, keepdims=True), 1e-30)
         return (
             np.asarray(symbols[start : start + self.seq_len], dtype=np.int64),
-            np.asarray(targets[start : start + self.seq_len], dtype=np.float32),
+            t,
             np.asarray(nexts[start : start + self.seq_len], dtype=np.int64),
             np.asarray(docs[start : start + self.seq_len], dtype=np.int64),
         )

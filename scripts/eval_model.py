@@ -19,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from byte_agent.extract import load_documents
 from byte_agent.model import ByteLM, ModelConfig
 from byte_agent.shards import BOS, EOT, TargetDataset
+from byte_agent.token_bytes import load_tokenizer_spec, prompt_symbols
+from tokenizers import Tokenizer
 
 
 def source_category(source: str) -> str:
@@ -117,14 +119,24 @@ def document_metrics(model: ByteLM, root: str, corpus_dir: Path, batch: int,
 
 @torch.no_grad()
 def generation_metrics(model: ByteLM, corpus_dir: Path, prompts: int, prompt_bytes: int,
-                       max_new: int, temperature: float, top_k: int, device: str) -> dict:
+                       max_new: int, temperature: float, top_k: int, device: str,
+                       prompt_format: str, tok: Tokenizer | None,
+                       spec) -> dict:
     texts = load_documents(corpus_dir, "val")
     rows = []
     for i, text in enumerate(texts[:prompts]):
-        full = text.encode("utf-8")
-        prompt = full[:prompt_bytes]
-        target = full[len(prompt): len(prompt) + max_new]
-        ids = [BOS] + list(prompt)
+        if prompt_format == "eot":
+            if tok is None or spec is None:
+                raise ValueError("EOT prompt format requires a tokenizer")
+            chunks = [spec.token_bytes[t] for t in tok.encode(text).ids
+                      if spec.token_bytes[t] is not None]
+            full = b"".join(chunks)
+            ids, prompt_len = prompt_symbols(chunks, prompt_bytes)
+        else:
+            full = text.encode("utf-8")
+            prompt_len = min(prompt_bytes, len(full))
+            ids = [BOS] + list(full[:prompt_len])
+        target = full[prompt_len: prompt_len + max_new]
         t0 = time.time()
         sample, stats = model.generate(ids, max_new=max_new, temperature=temperature,
                                        top_k=top_k, device=device, greedy=False,
@@ -157,6 +169,7 @@ def generation_metrics(model: ByteLM, corpus_dir: Path, prompts: int, prompt_byt
         })
     return {
         "prompts": len(rows),
+        "prompt_format": prompt_format,
         "valid_utf8_rate": sum(r["valid_utf8"] for r in rows) / max(len(rows), 1),
         "mean_eot_rate": sum(r["eot_rate"] for r in rows) / max(len(rows), 1),
         "mean_greedy_byte_accuracy": sum(r["greedy_byte_accuracy"] for r in rows) / max(len(rows), 1),
@@ -178,6 +191,10 @@ def main() -> None:
     ap.add_argument("--max-new", type=int, default=200)
     ap.add_argument("--temperature", type=float, default=0.8)
     ap.add_argument("--top-k", type=int, default=50)
+    ap.add_argument("--prompt-format", choices=["eot", "raw"], default="eot",
+                    help="EOT boundaries (training format) or raw bytes")
+    ap.add_argument("--tokenizer", default="/data/ornith-byte/models/ornith/tokenizer.json")
+    ap.add_argument("--tokenizer-config", default=None)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--max-windows", type=int, default=0)
     ap.add_argument("--out", default="")
@@ -191,8 +208,12 @@ def main() -> None:
 
     docs = document_metrics(model, args.val_targets, Path(args.corpus_dir),
                             args.batch, args.seq_len, device, args.max_windows)
+    use_tokenizer = bool(args.prompts and args.prompt_format == "eot")
+    tok = Tokenizer.from_file(args.tokenizer) if use_tokenizer else None
+    spec = load_tokenizer_spec(args.tokenizer, args.tokenizer_config) if use_tokenizer else None
     gen = generation_metrics(model, Path(args.corpus_dir), args.prompts, args.prompt_bytes,
-                             args.max_new, args.temperature, args.top_k, device) if args.prompts else None
+                             args.max_new, args.temperature, args.top_k, device,
+                             args.prompt_format, tok, spec) if args.prompts else None
     report = {"checkpoint": args.checkpoint, "documents": docs, "generation": gen}
     print(json.dumps({k: v for k, v in report.items() if k != "documents"}, indent=2))
     print(json.dumps(docs["overall"], indent=2))

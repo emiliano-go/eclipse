@@ -51,7 +51,7 @@ def convert_batch(
     first: np.ndarray,
     doc_ids: np.ndarray,
     table: TokenTable,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     rows, lens = table.convert_batch(logits, observed)
     n = int(lens.sum())
     symbols = np.empty(n, dtype=np.uint16)
@@ -102,12 +102,15 @@ def main() -> None:
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--shard-positions", type=int, default=250_000)
     ap.add_argument("--teacher-sha", default="")
-    ap.add_argument("--cpp-targets", action="store_true")
+    ap.add_argument("--cpp-targets", action=argparse.BooleanOptionalAction, default=True,
+                    help="C++ converter (default); use --no-cpp-targets for the deprecated Python path")
     ap.add_argument("--trie", default="/data/ornith-byte/models/trie.bin")
     ap.add_argument("--converter", default="/data/ornith-byte/tools/convert_targets")
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--no-checksum", action="store_true")
     args = ap.parse_args()
+    if not args.cpp_targets:
+        print("WARNING: using the deprecated Python converter; C++ is the production path.", flush=True)
 
     t_start = time.time()
     corpus_dir = Path(args.corpus_dir)

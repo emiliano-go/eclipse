@@ -40,6 +40,33 @@ def decode_token(token: str) -> bytes:
         raise ValueError(f"token {token!r} is not ByteLevel-encoded") from exc
 
 
+def prompt_symbols(chunks: list[bytes], prompt_bytes: int) -> tuple[list[int], int]:
+    """Build the training-style prompt: BOS, bytes, EOT, bytes, EOT, ... .
+
+    The model is trained on teacher-token boundaries, so a raw-byte prompt is
+    out of distribution. Complete tokens get an EOT; a token cut by the
+    prompt budget is included only up to the cut and gets no EOT. Returns the
+    symbol list and the number of raw bytes consumed.
+    """
+    from .shards import BOS, EOT
+
+    symbols = [BOS]
+    consumed = 0
+    for chunk in chunks:
+        if consumed >= prompt_bytes:
+            break
+        if not chunk:
+            continue
+        take = min(len(chunk), prompt_bytes - consumed)
+        symbols.extend(chunk[:take])
+        consumed += take
+        if take == len(chunk):
+            symbols.append(EOT)
+        else:
+            break
+    return symbols, consumed
+
+
 @dataclass
 class TokenizerSpec:
     token_bytes: list[bytes | None]  # indexed by id; None for specials

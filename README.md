@@ -11,15 +11,21 @@ EOT beats Marginalize-It and byte cross-entropy in a controlled comparison.
 
 - The rig works end to end. A 48M byte student learns the 9B teacher's
   next-byte distribution: held-out BPB **0.818**, teacher KL **0.317**,
-  top-1 **0.865**, valid UTF-8 **1.00** on 36 unseen documents.
+  observed next-symbol top-1 **0.865**, valid UTF-8 **1.00** on 36 unseen
+  documents.
 - **EOT + 10% CE is the best objective** in the controlled 1M comparison.
   Pure EOT reached 1.362 BPB / 0.617 KL; pure CE 1.483 / 0.826; MI wins
   content-only BPB by discarding EOT mass and is not deployable.
 - Scale is the dominant lever: moving from 1M to 26.2M training positions cut
   BPB 36% and KL 45%. The validation curve is flat after ~8k steps.
-- **This is not a usable language model.** A 7.3-byte greedy prefix with 86.5%
-  teacher-forced top-1 shows that free-running generation still compounds
-  error. The result proves the pipeline, not the model.
+- **This is not a usable language model.** A 7.25-byte greedy prefix (7.30
+  with the old raw-byte prompt) with 86.5% observed-next top-1 shows that
+  free-running generation still compounds error. The result proves the
+  pipeline, not the model.
+- The 36 validation documents were also used for objective selection; there is
+  no untouched test split. Teacher context (4,096 tokens) exceeds the
+  student's 1,024 symbols, and windows can cross document boundaries. See
+  `reports/phase7-full.md`.
 - Next work is a 24 GB GPU / larger-student path and a generation-focused
   objective; both are recorded in `reports/plan-training-efficiency.md`.
 
@@ -124,12 +130,12 @@ The 1M sweep selected `0.9 * EOT KL + 0.1 * byte CE`. Training on the full
 | BPB | 1.276 | **0.818** |
 | EOT-inclusive BPB | 1.378 | **0.879** |
 | teacher KL | 0.575 | **0.317** |
-| top-1 | 0.801 | **0.865** |
+| observed next-symbol top-1 | 0.801 | **0.865** |
 | valid UTF-8 | 0.90 | **1.00** |
-| greedy prefix | 6.35 | **7.3** |
+| greedy prefix | 6.35 | **7.25** |
 
 Documentation reaches BPB 0.764 / KL 0.284; Python 1.143 / 0.525. The
-validation curve is flat after ~8k steps. Generation is still weak (7.3-byte
+validation curve is flat after ~8k steps. Generation is still weak (7.25-byte
 greedy match), so this proves the rig rather than a usable model. No
 gpu-unlock was used; the deferred speed protocol is in
 `reports/plan-training-efficiency.md`. See `reports/phase7-full.md`.
