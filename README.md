@@ -7,6 +7,22 @@ prove that the teacher's token distributions can be converted to exact
 byte/End-Of-Token targets, that a small byte student learns from them, and that
 EOT beats Marginalize-It and byte cross-entropy in a controlled comparison.
 
+## Conclusions
+
+- The rig works end to end. A 48M byte student learns the 9B teacher's
+  next-byte distribution: held-out BPB **0.818**, teacher KL **0.317**,
+  top-1 **0.865**, valid UTF-8 **1.00** on 36 unseen documents.
+- **EOT + 10% CE is the best objective** in the controlled 1M comparison.
+  Pure EOT reached 1.362 BPB / 0.617 KL; pure CE 1.483 / 0.826; MI wins
+  content-only BPB by discarding EOT mass and is not deployable.
+- Scale is the dominant lever: moving from 1M to 26.2M training positions cut
+  BPB 36% and KL 45%. The validation curve is flat after ~8k steps.
+- **This is not a usable language model.** A 7.3-byte greedy prefix with 86.5%
+  teacher-forced top-1 shows that free-running generation still compounds
+  error. The result proves the pipeline, not the model.
+- Next work is a 24 GB GPU / larger-student path and a generation-focused
+  objective; both are recorded in `reports/plan-training-efficiency.md`.
+
 ## Scope
 
 - Teacher: `ornith-ai/Ornith-1.5-9B` (Qwen3.5 hybrid, 9B, BF16 available).
@@ -123,3 +139,7 @@ Next: optional second seed or token-student control, or the 24 GB GPU path
 `reports/plan-training-efficiency.md`.
 
 The plan is stored by the `rbg` plan tool under task `ornith-byte-rig`.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
